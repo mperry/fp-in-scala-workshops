@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>Functional Programming In Scala - An Introduction</title>
+		<title>Functional Programming In Scala - Getting Started</title>
 
 		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
 		<meta name="author" content="Hakim El Hattab">
@@ -38,7 +38,7 @@
 
 				<section>
 					<h2>Functional Programming in Scala</h2>
-					<h3>An Introduction</h3>
+					<h3>Getting Started</h3>
 					<p>
 						<small>
 							Created by Mark Perry,
@@ -61,148 +61,66 @@
 					</center>
 				</section>
 				<section>
-					<h2>Introduction</h2>
+					<h2>Goals</h2>
 					<ul>
-						<li>Goal: Begin learning Functional Programming (FP) in Scala</li>
-						<li>Premise: Programs from pure or side-effect free functions</li>
-						<li>Some techniques feel strange, keep an open mind</li>
-					</ul>
-				</section>
-
-				<section>
-					<h2>The FP Road</h2>
-					<center>
-						<table>
-							<tr>
-								<td>
-									<li>Introduction</li>
-									<li>Data Structures</li>
-									<li>Errors without exceptions</li>
-									<li>Strictness and Laziness</li>
-									<li>Purely Functional State</li>
-									<li>Purely Functional Parrallelism</li>
-									<li>Property Based Testing</li>
-								</td>
-								<td>
-									<li>Parser Combinators</li>
-									<li>Monoids</li>
-									<li>Monads</li>
-									<li>Applicative Functors</li>
-									<li>External Effects and I/O</li>
-									<li>Local Effects and the ST Monad</li>
-									<li>Stream Processing and Incremental I/O</li>
-								</td>
-							</tr>
-						</table>
-					</center>
-				</section>
-
-				<section>
-					<h2>Premise</h2>
-					<ul>
-						<li>Premise: Programs from pure or side-effect free functions</li>
-						<li>Using book, "Functional Programming in Scala"</li>
-						<li>FP is less powerful than imperative</li>
-						<li>But - big increase in modularity</li>
-						<li>Easier to test, reuse, parallelise, generalise and reason about</li>
-					</ul>
-				</section>
-
-				<section>
-					<h2>Purity</h2>
-					<ul>
-						<li>every value A has just one B, f: A => B</li>
-						<li>intToString, Int => String</li>
-						<li>and nothing else!</li>
-						<li>Referential transparency: expressions can be replaced with result</li>
+						<li>Write programs by combining pure functions</li>
+						<li>Learn by immersion with examples</li>
+						<li>Introduction to higher order functions</li>
 					</ul>
 				</section>
 
 				<section>
 					<h2>Example</h2>
 					<ul>
-						<li>Using RT, computation process like solving equation.</li>
-						<li>Equational reasoning: used all time time, extremely natural, even in non-FP languages</li>
-					</ul>
-					<pre><code>
-val x = "Hello, World"
-val r1 = x.reverse
-val r2 = x.reverse
-					</code></pre>
-					<pre><code>
-val r1 = "Hello, World".reverse
-val r2 = "Hello, World".reverse
- 					</code></pre>
-				</section>
-				<section>
-					<h2>Non RT Example</h2>
-					<ul>
-					</ul>
-					<pre><code>
-val x = new StringBuilder("Hello")
-val y = x.append(", World")
-val r1 = y.toString
-val r2 = y.toString
-					</code></pre>
-					<pre><code>
-val x = new StringBuilder("Hello")
-val r1 = x.append(", World").toString
-val r2 = x.append(", World").toString
-					</code></pre>
-				</section>
-
-				<section>
-					<h2>Why FP?</h2>
-					<ul>
-						<li>Modularity: Components can be understood independently</li>
-						<li>Compositon: f(g(x))</li>
-						<li>Whole system depends only on composition</li>
-						<li>Separate:
-							<ul>
-								<li>Logic of computation</li>
-								<li>What to do with result</li>
-								<li>How to obtain input</li>
-							</ul>
-						</li>
-						<li>Can reuse computation without concern for side effects</li>
+						<li>See MyModule.scala</li>
+						<li>object keyword creates singleton type</li>
+						<li>Side effect pushed to outer shell</li>
+						<li>Program is RT, since main is not called from program</li>
+						<li>Note type inference and immutable values</li>
 					</ul>
 				</section>
 
 				<section>
-					<h2>Refunctoring</h2>
+					<h2>Functions are Values</h2>
+					<p>
+
+
+					<ul>
+						<li>Can be passed as arguments</li>
+						<li>Stored in variables, data structures</li>
+						<li>Loop without mutation</li>
+					</ul>
+					</p>
+					<p>
+
+
 					<pre><code>
-case class Player(name: String, score: Int)
-
-def printWinner(p: Player): Unit =
-	println(p.name + " is the winner!")
-
-def declareWinner(p1: Player, p2: Player): Unit =
-	if (p1.score > p2.score) printWinner(p1)
-	else printWinner(p2)
+def factorial(n: Int): Int = {
+	def go(n: Int, acc: Int): Int =
+		if (n <= 0) acc
+		else go(n-1, n*acc)
+	go(n, 1)
+}
 					</code></pre>
-
-					<pre><code>
-def winner(p1: Player, p2: Player): Player =
-	if (p1.score > p2.score) p1 else p2
-
-def declareWinner(p1: Player, p2: Player): Unit =
-	printWinner(winner(p1, p2))
-					</code></pre>
+					</p>
 
 				</section>
 
 				<section>
-					<h2>Principles</h2>
+					<h2>Recursion</h2>
+
+					<pre><code>
+def factorial(n: Int): Int = {
+	def go(n: Int, acc: Int): Int =
+		if (n <= 0) acc
+		else go(n-1, n*acc)
+	go(n, 1)
+}
+					</code></pre>
 					<ul>
-						<li>FP is just normal separation of concerns</li>
-						<li>Any function with side effects can be split into:
-							<ul>
-								<li>Pure function</li>
-								<li>Function(s) with side effect on input/output</li>
-							</ul>
-						</li>
-						<li>Side effects push to outer core</li>
-						<li>Pure, reusable inner core</li>
+						<li>Recursive calls implement loop</li>
+						<li>Here recursive call happens last (tail position)</li>
+						<li>Tail call optimisation (TCO) changes recursion to while loop</li>
 					</ul>
 				</section>
 

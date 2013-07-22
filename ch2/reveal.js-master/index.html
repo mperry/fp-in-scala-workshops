@@ -81,19 +81,13 @@
 				</section>
 
 				<section>
-					<h2>Functions are Values</h2>
-					<p>
-
+					<h2>Recursion</h2>
 
 					<ul>
-						<li>Can be passed as arguments</li>
-						<li>Stored in variables, data structures</li>
-						<li>Loop without mutation</li>
+						<li>Recursive calls implement loop</li>
+						<li>Recursive call in tail position</li>
+						<li>Tail call optimisation (TCO)</li>
 					</ul>
-					</p>
-					<p>
-
-
 					<pre><code>
 def factorial(n: Int): Int = {
 	def go(n: Int, acc: Int): Int =
@@ -102,47 +96,81 @@ def factorial(n: Int): Int = {
 	go(n, 1)
 }
 					</code></pre>
-					</p>
 
 				</section>
 
 				<section>
-					<h2>Recursion</h2>
-
+					<h2>Higher Order Functions</h2>
 					<pre><code>
+def abs(x: Int): Int = {
+	...
+}
+
 def factorial(n: Int): Int = {
-	def go(n: Int, acc: Int): Int =
-		if (n <= 0) acc
-		else go(n-1, n*acc)
-	go(n, 1)
+	...
+}
+
+def formatResult(name: String, n: Int, f: Int => Int) = {
+	val msg = "The %s of %d is %d."
+	msg.format(n, f(n))
+}
+
+def main(args: Array[String]): Unit = {
+	println(formatResult("absolute value", -42, abs))
+	println(formatResult("factorial", 7, factorial))
 }
 					</code></pre>
+				</section>
+
+				<section>
+					<h2>Anonymous Functions</h2>
+					<pre><code>
+def main(args: Array[String]): Unit = {
+	println(formatResult("absolute value", -42, abs))
+	println(formatResult("factorial", 7, factorial))
+	println(formatResult("increment", 7, (x: Int) => x + 1))
+	println(formatResult("increment2", 7, (x) => x + 1))
+	println(formatResult("increment3", 7, x => x + 1))
+	println(formatResult("increment4", 7, _ + 1))
+	println(formatResult("increment5", 7, x => { val r = x + 1; r }))
+}
+					</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Polymorphic Functions</h2>
 					<ul>
-						<li>Recursive calls implement loop</li>
-						<li>Here recursive call happens last (tail position)</li>
-						<li>Tail call optimisation (TCO) changes recursion to while loop</li>
+						<li>Previously monomorphic</li>
+						<li>Abstracts over type of array</li>
+						<li>Takes a list of type parameters/variables</li>
+						<li>only operations on type parameters are the arguments</li>
 					</ul>
+					<pre><code>
+def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean
+
+def partial1[A,B,C](a: A, f: (A,B) => C): B => C
+
+def curry[A,B,C](f: (A, B) => C): A => (B => C)
+
+def compose[A,B,C](f: B => C, g: A => B): A => C
+					</code></pre>
 				</section>
 
 				<section>
 					<h2>Summary</h2>
 					<ul>
-						<li>What is FP</li>
-						<li>Why is FP important</li>
-						<li>Questions - how do we:</li>
-						<ul>
-							<li>write loops?</li>
-							<li>implement data structures?</li>
-							<li>deal with errors and exceptions?</li>
-							<li>handle input and output?</li>
-							<li>concurrency?</li>
-						</ul>
+						<li>Learn basic FP concepts</li>
+						<li>Enough Scala to get going</li>
+						<li>Recursion</li>
+						<li>Higher Order Functions</li>
+						<li>Polymorphism</li>
 					</ul>
 				</section>
 
 				<section>
 					<h2>Afterword</h2>
-					<p>Functional Programming in Scala, Chiusano and Bjarnason, Chapter 1</p>
+					<p>Functional Programming in Scala, Chiusano and Bjarnason, Chapter 2, Getting Started</p>
 					<center>
 						<table cellspacing="40">
 							<tr>

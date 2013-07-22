@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>reveal.js - The HTML Presentation Framework</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/simple.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<h1>Errors Without Exceptions</h1>
+					<h3>Functional Programming in Scala</h3>
+					<p>
+						<small>Created by <a href="http://hakim.se">Hakim El Hattab</a> / <a href="http://twitter.com/hakimel">@hakimel</a></small>
+					</p>
+				</section>
+
+				<section>
+					<h2>Exceptions are Imperative</h2>
+					<pre><code>
+def f: Int = {
+	try {
+		f1 + f2
+	} catch (Exception1 e) {
+		-1
+	} catch (Exception2 e) {
+		-2
+	}
+}					
+
+def f1: Int = {
+	throw new Exception1()
+}
+
+def f2: Int = {
+	throw new Exception2()
+}
+					</code></pre>
+				</section>
+				<section>
+
+
+					<h2></h2>
+					<ul>
+						<li>Return a value indicating an exceptional condition</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Exception Alternatives</h2>
+					<pre>
+						<code>
+def mean(xs: Seq[Double]): Double =
+	if (xs.isEmpty)
+		throw new ArithmeticException("mean of empty list!")
+	else xs.sum / xs.length
+						</code>
+					</pre>
+					<ul>
+						<li>Mean is a partial function</li>
+						<li>Partiality can be on input values or termination</li>
+
+					</ul>
+				</section>
+				<section>
+					<ul>
+						<li>Can return sentinels, e.g. 0.0 / 0.0 is Double.NaN, null</li>
+						<li>Errors can propagate silently</li>
+						<li>Might be no appropriate sentinel</li>
+						<li>Null is not type safe, incompatible with primitives</li>
+						<li>Exception forces callers to check for an exception.  Makes it difficult for HOF which treats
+						arguments uniformly.</li>
+
+					</ul>
+				</section>
+				<section>
+					<ul>
+						<li>Can pass sentinel to function, making it total.</li>
+						<li>Immediate callers have direct knowledge, forces sentinel knowledge up call stack</li>
+						<li>Need to defer decision</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Option Data Type</h2>
+					<pre>
+						<code>
+sealed trait Option[+A]
+case class Some[+A](get: A) extends Option[A]
+case object None extends Option[Nothing]
+
+def mean(xs: Seq[Double]): Option[Double] =
+	if (xs.isEmpty) None
+	else Some(xs.sum / xs.length)
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h2>Option Usage Patterns</h2>
+					<ul>
+						<li>Examples: Map lookup, first/last in list</li>
+						<li>Factor out common error handling in HOF, avoiding exception handling boiler plate</li>
+					</ul>
+					<pre>
+						<code>
+trait Option[+A] {
+	def map[B](f: A => B): Option[B]
+	def flatMap[B](f: A => Option[B]): Option[B]
+	def getOrElse[B >: A](default: => B): B
+	def orElse[B >: A](ob: => Option[B]): Option[B]
+	def filter(f: A => Boolean): Option[A]
+}
+						</code>
+					</pre>
+					<ul>
+						<li>Implement functions all functions beside map and getOrElse without pattern matching</li>
+					</ul>
+				</section>
+				<section>
+					<pre>
+						<code>
+val dept: String =
+	employeesByName.get("Joe").
+	map(_.dept).
+	filter(_ != "Accounting").
+	getOrElse("Default Dept")
+						</code>
+					</pre>
+					<pre>
+						<code>
+public String getJoeDept() {
+	String defaultDept = "Default Dept"
+	String key = "Joe"
+	if (!employeesByName.hasKey(key)) {
+		return defaultDept
+	} else {
+		Department dept = employeesByName.get(key).getDepartment()
+		dept == "Accounting" ? dept : defaultDept
+	}
+}
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h2>Composition and Lifting</h2>
+					<ul>
+						<li>Does Option pollute entire codebase?</li>
+						<li>Map lifts ordinary functions into Option</li>
+						<li>Turns A => B into Option[A] => Option[B]</li>
+					</ul>
+					<pre>
+						<code>
+def lift[A,B](f: A => B): Option[A] => Option[B] = _ map f
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Lift Example</h2>
+					<ul>
+						<li>
+							Methods on Pattern don't need to know about Option!
+						</li>
+					</ul>
+					<pre>
+						<code>
+
+import java.util.regex._
+def pattern(s: String): Option[Pattern] =
+	try {
+		Some(Pattern.compile(s))
+	} catch {
+		case e: PatternSyntaxException => None
+	}
+
+def mkMatcher(pat: String): Option[String => Boolean] =
+	pattern(pat) map (p => (s: String) => p.matcher(s).matches)
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Lifting Using For Comprehension</h2>
+
+					<pre>
+						<code>
+def mkMatcher_1(pat: String): Option[String => Boolean] =
+	for {
+		p <- pattern(pat)
+	} yield ((s: String) => p.matcher(s).matches)
+def doesMatch(pat: String, s: String): Option[Boolean] =
+	for {
+		p <- mkMatcher_1(pat)
+	} yield p(s)
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h2>Lifting Two Arguments</h2>
+					<pre>
+						<code>
+def bothMatch(pat: String, pat2: String, s: String): Option[Boolean] =
+	for {
+		f <- mkMatcher(pat)
+		g <- mkMatcher(pat2)
+	} yield f(s) && g(s)
+
+def bothMatch_1(pat: String, pat2: String, s: String): Option[Boolean] =
+	mkMatcher(pat) flatMap (f =>
+	mkMatcher(pat2) map (g =>
+	f(s) && g(s)))
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h2>Exercises</h2>
+					<ul>
+						<li>Write a generic function  , that combines two  values using a binary function</li>
+						<pre>
+							<code>
+def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
+							</code>
+						</pre>
+						<li>Re-implment bothMatch using map2</li>
+						<pre><code>
+def bothMatch_2(pat1: String, pat2: String, s: String): Option[Boolean]
+						</code></pre>
+						<li>Implement sequence</li>
+						<pre>
+							<code>
+def sequence[A](a: List[Option[A]]): Option[List[A]]
+							</code>
+						</pre>
+					</ul>
+				</section>
+
+				<section>
+					Generalise parsePatterns into traverse
+					<pre>
+						<code>
+def parsePatterns(a: List[String]): Option[List[Pattern]] =
+	sequence(a map pattern)
+
+def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h2>Either</h2>
+					<ul>
+						<li>Option too simplistic,</li>
+						<li>Either gives a reason for failutre</li>
+						<li>Disjoint union of two types</li>
+						<li>By convention, left is failure, right is "correct/right"</li>
+					</ul>
+					<pre>
+						<code>
+sealed trait Either[+E, +A]
+case class Left[+E](value: E) extends Either[E, Nothing]
+case class Right[+A](value: A) extends Either[Nothing, A]
+						</code>
+					</pre>
+
+				</section>
+				<section>
+					<pre>
+						<code>
+def safeDiv(x: Double, y: Double): Either[Exception, Double] =
+	try {
+		Right(x / y)
+	} catch {
+		case e: Exception => Left(e)
+	}
+						</code>
+					</pre>
+
+				</section>
+				<section>
+					<pre>
+						<code>
+trait Either[+E, +A] {
+	def map[B](f: A => B): Either[E, B]
+	def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B]
+	def orElse[EE >: E,B >: A](b: => Either[EE, B]): Either[EE, B]
+	def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C]
+}
+						</code>
+					</pre>
+				</section>
+				<section>
+					<h2>Conclusion</h2>
+					<ul>
+						<li>Using ADT, errors are modular, compositional and simple to reason about</li>
+						<li>Higher Order Functions can manipulate errors</li>
+					</ul>
+				</section>
+
+				<section>
+					<h1>THE END</h1>
+					<h3>BY Hakim El Hattab / hakim.se</h3>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>

@@ -1,0 +1,4 @@
+<pre style="background:#000;color:#f8f8f8">sealed trait List[<span style="color:#e28964">+</span>A]
+case <span style="color:#9b859d">object</span> Nil extends List[Nothing]
+case <span style="color:#99cf50">class</span> Cons[<span style="color:#e28964">+</span>A](head: A, tail: List[A]) extends List[A]
+</pre>

@@ -112,8 +112,8 @@
 					<h2>Purity</h2>
 					<ul>
 						<li>every value A has just one B, f: A => B</li>
-						<li>intToString, Int => String</li>
-						<li>and nothing else!</li>
+						<li>intToString: Int => String</li>
+						<li><h2>and nothing else!</h2></li>
 						<li>Referential transparency: expressions can be replaced with result</li>
 					</ul>
 				</section>
@@ -122,7 +122,7 @@
 					<h2>Example</h2>
 					<ul>
 						<li>Using RT, computation process like solving equation.</li>
-						<li>Equational reasoning: used all time time, extremely natural, even in non-FP languages</li>
+						<li>Equational reasoning: always used naturally, even in non-FP languages</li>
 					</ul>
 					<pre><code>
 val x = "Hello, World"
@@ -155,7 +155,7 @@ val r2 = x.append(", World").toString
 					<h2>Why FP?</h2>
 					<ul>
 						<li>Modularity: Components can be understood independently</li>
-						<li>Compositon: f(g(x))</li>
+						<li>Compositon: f(g(x)) = (f compose g)(x)</li>
 						<li>Whole system depends only on composition</li>
 						<li>Separate:
 							<ul>

@@ -1,7 +1,7 @@
-package com.github.mperry.fpInScala.chapter2
+package fpInScala.chapter2.test
 
-import com.github.mperry.fpInScala.Curry._
-import com.github.mperry.fpInScala.Curry
+//import com.github.mperry.fpInScala.chapter2.solutions.Solutions._
+//import com.github.mperry.fpInScala.chapter2.solutions.Solutions
 
 /**
  * Created with IntelliJ IDEA.

@@ -73,7 +73,6 @@
 					<h2>Example</h2>
 					<ul>
 						<li>See MyModule.scala</li>
-						<li>object keyword creates singleton type</li>
 						<li>Side effect pushed to outer shell</li>
 						<li>Program is RT, since main is not called from program</li>
 						<li>Note type inference and immutable values</li>
@@ -81,19 +80,33 @@
 				</section>
 
 				<section>
-					<h2>Recursion</h2>
-
+					<h2>Loops Without Mutation</h2>
 					<ul>
 						<li>Recursive calls implement loop</li>
 						<li>Recursive call in tail position</li>
 						<li>Tail call optimisation (TCO)</li>
 					</ul>
 					<pre><code>
+def factorialM(n: Int): Int = {
+	var i = n
+	var result = 1
+	while (i > 1) {
+		result = result * i
+		i = i - 1
+	}
+	result
+}
+
 def factorial(n: Int): Int = {
-	def go(n: Int, acc: Int): Int =
-		if (n <= 0) acc
-		else go(n-1, n*acc)
-	go(n, 1)
+	if (n <= 1) 1
+	else n * factorial(n - 1)
+}
+
+def factorialTR(n: Int): Int = {
+	def facTR(n: Int, acc: Int): Int =
+		if (n <= 1) acc
+		else facTR(n - 1, n * acc)
+	facTR(n, 1)
 }
 					</code></pre>
 
@@ -135,16 +148,17 @@ def main(args: Array[String]): Unit = {
 	println(formatResult("increment5", 7, x => { val r = x + 1; r }))
 }
 					</code></pre>
-
+					<ul>
+						<li>Syntactic sugar for Function1[Int, Int]</li>
+					</ul>
 				</section>
 
 				<section>
 					<h2>Polymorphic Functions</h2>
 					<ul>
 						<li>Previously monomorphic</li>
-						<li>Abstracts over type of array</li>
+						<li>Abstract over any type</li>
 						<li>Takes a list of type parameters/variables</li>
-						<li>only operations on type parameters are the arguments</li>
 					</ul>
 					<pre><code>
 def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean

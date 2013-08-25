@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="utf-8">
 
-		<title>reveal.js - The HTML Presentation Framework</title>
+		<title>Functional Programming In Scala - Errors Without Exceptions</title>
 
 		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
 		<meta name="author" content="Hakim El Hattab">
@@ -38,79 +38,109 @@
 			<div class="slides">
 
 				<section>
-					<h1>Errors Without Exceptions</h1>
-					<h3>Functional Programming in Scala</h3>
+					<h2>Errors Without Exceptions</h3>
+					<h3>Functional Programming in Scala</h2>
+
 					<p>
-						<small>Created by <a href="http://hakim.se">Hakim El Hattab</a> / <a href="http://twitter.com/hakimel">@hakimel</a></small>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
 					</p>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
 				</section>
 
 				<section>
-					<h2>Exceptions are Imperative</h2>
+					<h2>Referential Transparency</h2>
+					<ul>
+						<li>Terms can be replaced with definition without affecting behaviour</li>
+					</ul>
+						<pre><code>
+val x = "Hello, World"
+val r1 = x.reverse
+val r2 = x.reverse
+						</code></pre>
 					<pre><code>
-def f: Int = {
+val x = new StringBuilder("Hello")
+val y = x.append(", World")
+val r1 = y.toString
+val r2 = y.toString
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Exceptions break RT</h2>
+					<pre><code>
+def f1(i: Int): Int = {
+	val x: Int = throw new Exception("fail!")
 	try {
-		f1 + f2
+		val y = i + 1
+		x + y
+	}
+	catch { case e: Exception => 2 }
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Exceptions break RT (2)</h2>
+					<pre><code>
+def f1: Int = {
+	try {
+		f2(throw new Exception1(), throw new Exception2())
 	} catch (Exception1 e) {
 		-1
 	} catch (Exception2 e) {
 		-2
 	}
-}					
-
-def f1: Int = {
-	throw new Exception1()
-}
-
-def f2: Int = {
-	throw new Exception2()
 }
 					</code></pre>
 				</section>
+
 				<section>
-
-
-					<h2></h2>
+					<h2>Exceptions and RT</h2>
 					<ul>
-						<li>Return a value indicating an exceptional condition</li>
+						<li>RT breaks when handling exceptions</li>
+						<li>Uses implicit stack state</li>
+						<li>Modelled using Continuations</li>
 					</ul>
 				</section>
+
 				<section>
 					<h2>Exception Alternatives</h2>
-					<pre>
-						<code>
-def mean(xs: Seq[Double]): Double =
-	if (xs.isEmpty)
-		throw new ArithmeticException("mean of empty list!")
-	else xs.sum / xs.length
-						</code>
-					</pre>
 					<ul>
-						<li>Mean is a partial function</li>
-						<li>Partiality can be on input values or termination</li>
-
-					</ul>
-				</section>
-				<section>
-					<ul>
-						<li>Can return sentinels, e.g. 0.0 / 0.0 is Double.NaN, null</li>
-						<li>Errors can propagate silently</li>
-						<li>Might be no appropriate sentinel</li>
-						<li>Null is not type safe, incompatible with primitives</li>
-						<li>Exception forces callers to check for an exception.  Makes it difficult for HOF which treats
-						arguments uniformly.</li>
-
-					</ul>
-				</section>
-				<section>
-					<ul>
-						<li>Can pass sentinel to function, making it total.</li>
-						<li>Immediate callers have direct knowledge, forces sentinel knowledge up call stack</li>
-						<li>Need to defer decision</li>
+						<li>Use a sentinel value</li>
+						<ul>
+							<li>Errors can propagate silently</li>
+							<li>May be no valid sentinel</li>
+							<li>Callers must know of special values, bad for reuse (HOF)</li>
+						</ul>
+						<li>Force caller to give default value</li>
+						<ul>
+							<li>Immediate callers must have default</li>
+							<li>Need to defer decision</li>
+						</ul>
 					</ul>
 				</section>
 				<section>
 					<h2>Option Data Type</h2>
+					<ul>
+						<li>Need type that sometimes has a value</li>
+						<li>Convert function from partial to total</li>
+					</ul>
 					<pre>
 						<code>
 sealed trait Option[+A]
@@ -127,7 +157,7 @@ def mean(xs: Seq[Double]): Option[Double] =
 					<h2>Option Usage Patterns</h2>
 					<ul>
 						<li>Examples: Map lookup, first/last in list</li>
-						<li>Factor out common error handling in HOF, avoiding exception handling boiler plate</li>
+						<li>Factor out common error handling</li>
 					</ul>
 					<pre>
 						<code>
@@ -141,21 +171,23 @@ trait Option[+A] {
 						</code>
 					</pre>
 					<ul>
-						<li>Implement functions all functions beside map and getOrElse without pattern matching</li>
+
 					</ul>
 				</section>
 				<section>
-					<pre>
-						<code>
-val dept: String =
+					<h2>Example</h2>
+					<pre><code>
+case class Employee(name: String, department: String)
+val employeesByName: Map[String, Employee] = ???
+					</code></pre>
+					<pre><code>
+val joeDept: String =
 	employeesByName.get("Joe").
 	map(_.dept).
 	filter(_ != "Accounting").
 	getOrElse("Default Dept")
-						</code>
-					</pre>
-					<pre>
-						<code>
+</code> </pre>
+<pre> <code>
 public String getJoeDept() {
 	String defaultDept = "Default Dept"
 	String key = "Joe"
@@ -163,11 +195,9 @@ public String getJoeDept() {
 		return defaultDept
 	} else {
 		Department dept = employeesByName.get(key).getDepartment()
-		dept == "Accounting" ? dept : defaultDept
+		return dept == "Accounting" ? dept : defaultDept
 	}
-}
-						</code>
-					</pre>
+}</code> </pre>
 				</section>
 				<section>
 					<h2>Composition and Lifting</h2>
@@ -184,6 +214,29 @@ def lift[A,B](f: A => B): Option[A] => Option[B] = _ map f
 				</section>
 
 				<section>
+					<h2>Properties Files</h2>
+					<pre><code>
+def stringProperty(p: Properties, key: String): Option[String] = {
+	Option(p).map(_.getProperty(key))
+}
+
+def intProperty1(p: Properties, key: String): Option[Int] = {
+	stringProperty(p, key).map(_.toInt)
+}
+
+def sToInt(s: String): Option[Int] = ???
+
+def intProperty2(p: Properties, key: String): Option[Int] = {
+	stringProperty(p, key).flatMap(sToInt(_))
+}
+					</code></pre>
+
+					<pre><code>
+def map[B](f: A => B): Option[B]
+def flatMap[B](f: A => Option[B]): Option[B]
+					</code></pre>
+				</section>
+				<section>
 					<h2>Lift Example</h2>
 					<ul>
 						<li>
@@ -192,7 +245,9 @@ def lift[A,B](f: A => B): Option[A] => Option[B] = _ map f
 					</ul>
 					<pre>
 						<code>
-
+Option<String> getStringProperty(Properties p, String key) {
+	Option.fromNull(p.getProperty(key))
+}
 import java.util.regex._
 def pattern(s: String): Option[Pattern] =
 	try {

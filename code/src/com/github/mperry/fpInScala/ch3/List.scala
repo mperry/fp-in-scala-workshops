@@ -18,6 +18,10 @@ case class Cons[+A](head: A, tail: List[A]) extends List[A]
 // companion object List
 object List {
 
+	// List creation examples
+	val example = Cons(1, Cons(2, Cons(3, Nil)))
+	val example2 = List(1, 2, 3)
+
 	def sum(ints: List[Int]): Int = ints match {
 		// pattern matching
 		case Nil => 0
@@ -26,7 +30,6 @@ object List {
 
 	def product(ds: List[Double]): Double = ds match {
 		case Nil => 1.0
-		case Cons(0.0, _) => 0.0
 		case Cons(x, xs) => x * product(xs)
 	}
 
@@ -35,9 +38,6 @@ object List {
 		if (as.isEmpty) Nil
 		else Cons(as.head, apply(as.tail: _*))
 
-	// List creation examples
-	val example = Cons(1, Cons(2, Cons(3, Nil)))
-	val example2 = List(1, 2, 3)
 	val total = sum(example)
 
 }

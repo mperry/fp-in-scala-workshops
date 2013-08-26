@@ -125,7 +125,7 @@ def factorial(n: Int): Int = {
 
 def formatResult(name: String, n: Int, f: Int => Int) = {
 	val msg = "The %s of %d is %d."
-	msg.format(n, f(n))
+	msg.format(name, n, f(n))
 }
 
 def main(args: Array[String]): Unit = {

@@ -208,46 +208,16 @@ public String getJoeDept() {
 					</ul>
 					<pre>
 						<code>
-def lift[A,B](f: A => B): Option[A] => Option[B] = _ map f
+def lift[A,B](f: A => B): Option[A] => Option[B] =
+	_ map f
+	//{ o => o.map(f) }
 						</code>
 					</pre>
 				</section>
 
 				<section>
-					<h2>Properties Files</h2>
+					<h2>Lifting Using Map</h2>
 					<pre><code>
-def stringProperty(p: Properties, key: String): Option[String] = {
-	Option(p).map(_.getProperty(key))
-}
-
-def intProperty1(p: Properties, key: String): Option[Int] = {
-	stringProperty(p, key).map(_.toInt)
-}
-
-def sToInt(s: String): Option[Int] = ???
-
-def intProperty2(p: Properties, key: String): Option[Int] = {
-	stringProperty(p, key).flatMap(sToInt(_))
-}
-					</code></pre>
-
-					<pre><code>
-def map[B](f: A => B): Option[B]
-def flatMap[B](f: A => Option[B]): Option[B]
-					</code></pre>
-				</section>
-				<section>
-					<h2>Lift Example</h2>
-					<ul>
-						<li>
-							Methods on Pattern don't need to know about Option!
-						</li>
-					</ul>
-					<pre>
-						<code>
-Option<String> getStringProperty(Properties p, String key) {
-	Option.fromNull(p.getProperty(key))
-}
 import java.util.regex._
 def pattern(s: String): Option[Pattern] =
 	try {
@@ -255,84 +225,78 @@ def pattern(s: String): Option[Pattern] =
 	} catch {
 		case e: PatternSyntaxException => None
 	}
-
+}
+					</code></pre>
+					<pre><code>
 def mkMatcher(pat: String): Option[String => Boolean] =
 	pattern(pat) map (p => (s: String) => p.matcher(s).matches)
-						</code>
-					</pre>
+					</code></pre>
 				</section>
 
 				<section>
 					<h2>Lifting Using For Comprehension</h2>
 
-					<pre>
-						<code>
-def mkMatcher_1(pat: String): Option[String => Boolean] =
+					<pre><code>
+def doesMatch1(pat: String, s: String): Option[Boolean] =
 	for {
-		p <- pattern(pat)
-	} yield ((s: String) => p.matcher(s).matches)
-def doesMatch(pat: String, s: String): Option[Boolean] =
-	for {
-		p <- mkMatcher_1(pat)
-	} yield p(s)
-						</code>
-					</pre>
+		f <- mkMatcher(pat)
+	} yield f(s)
+}
+					</code></pre>
+					<pre><code>
+def doesMatch2(pat: String, s: String): Option[Boolean] =
+	mkMatcher(pat).map(_(s))
+	//mkMatcher(pat).map((f: String => Boolean) => f(s))
+}
+					</code></pre>
+
 				</section>
 				<section>
 					<h2>Lifting Two Arguments</h2>
 					<pre>
 						<code>
-def bothMatch(pat: String, pat2: String, s: String): Option[Boolean] =
+def bothMatch1(pat: String, pat2: String, s: String): Option[Boolean] =
 	for {
 		f <- mkMatcher(pat)
 		g <- mkMatcher(pat2)
 	} yield f(s) && g(s)
 
-def bothMatch_1(pat: String, pat2: String, s: String): Option[Boolean] =
-	mkMatcher(pat) flatMap (f =>
-	mkMatcher(pat2) map (g =>
-	f(s) && g(s)))
+def bothMatch2(pat: String, pat2: String, s: String): Option[Boolean] =
+	mkMatcher(pat).flatMap (f =>
+		mkMatcher(pat2).map(g => f(s) && g(s)))
 						</code>
 					</pre>
 				</section>
+
+				<section>
+					<h2>Generalise</h2>
+					<pre><code>
+def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = ???
+
+def bothMatch3(pat: String, pat2: String, s: String): Option[Boolean] =
+	map2(mkMatcher(pat), mkMatcher(pat2))((f, g) => f(s) && g(s))
+					</code></pre>
+				</section>
+
 				<section>
 					<h2>Exercises</h2>
 					<ul>
-						<li>Write a generic function  , that combines two  values using a binary function</li>
+						<li>Write:</li>
 						<pre>
 							<code>
 def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
-							</code>
-						</pre>
-						<li>Re-implment bothMatch using map2</li>
-						<pre><code>
-def bothMatch_2(pat1: String, pat2: String, s: String): Option[Boolean]
-						</code></pre>
-						<li>Implement sequence</li>
-						<pre>
-							<code>
 def sequence[A](a: List[Option[A]]): Option[List[A]]
+def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
 							</code>
 						</pre>
 					</ul>
 				</section>
 
 				<section>
-					Generalise parsePatterns into traverse
-					<pre>
-						<code>
-def parsePatterns(a: List[String]): Option[List[Pattern]] =
-	sequence(a map pattern)
-
-def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
-						</code>
-					</pre>
-				</section>
-				<section>
 					<h2>Either</h2>
 					<ul>
-						<li>Option too simplistic,</li>
-						<li>Either gives a reason for failutre</li>
+						<li>Option too simplistic</li>
+						<li>Either gives a reason for failure</li>
 						<li>Disjoint union of two types</li>
 						<li>By convention, left is failure, right is "correct/right"</li>
 					</ul>
@@ -346,6 +310,7 @@ case class Right[+A](value: A) extends Either[Nothing, A]
 
 				</section>
 				<section>
+					<h2>Creating Either</h2>
 					<pre>
 						<code>
 def safeDiv(x: Double, y: Double): Either[Exception, Double] =
@@ -358,7 +323,11 @@ def safeDiv(x: Double, y: Double): Either[Exception, Double] =
 					</pre>
 
 				</section>
+
+
+
 				<section>
+					<h2>Using Either Functions</h2>
 					<pre>
 						<code>
 trait Either[+E, +A] {
@@ -369,19 +338,81 @@ trait Either[+E, +A] {
 }
 						</code>
 					</pre>
+
+					<pre><code>
+for {
+	age <- Right(42)
+	name <- Left("invalid name")
+	salary <- Right(1000000.0)
+} yield employee(name, age, salary)
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Either Example</h2>
+					<pre><code>
+case class Person(name: Name, age: Age)
+sealed class Name(val value: String)
+sealed class Age(val value: Int)
+
+object Person {
+	def mkName(name: String): Either[String, Name] =
+		if (name == "" || name == null) Left("Name is empty.")
+		else Right(new Name(name))
+
+	def mkAge(age: Int): Either[String, Age] =
+		if (age < 0) Left("Age is out of range.")
+		else Right(new Age(age))
+
+	def mkPerson(name: String, age: Int): Either[String, Person] =
+		mkName(name).map2(mkAge(age))(Person(_, _))
+}
+					</code></pre>
 				</section>
 				<section>
 					<h2>Conclusion</h2>
 					<ul>
-						<li>Using ADT, errors are modular, compositional and simple to reason about</li>
-						<li>Higher Order Functions can manipulate errors</li>
+						<li>Option and Either are:
+							<ul>
+								<li>modular</li>
+								<li>compositional</li>
+								<li>simple to reason about</li>
+							</ul>
+						<li>Reuse functions that manipulate errors</li>
 					</ul>
 				</section>
 
+
 				<section>
-					<h1>THE END</h1>
-					<h3>BY Hakim El Hattab / hakim.se</h3>
+					<h2>Afterword</h2>
+					<ul>
+						<li>Functional Programming in Scala, Chiusano and Bjarnason</li>
+						<li>Chapter 4, Handling Errors Without Exceptions</li>
+					</ul>
+					<center>
+						<table cellspacing="40">
+							<tr>
+								<td ><img src="../../images/scala_book.png" height="150"></td>
+								<td><img src="../../images/author_small.png" height="150"></td>
+								<td><img src="../../images/lambda_thin.png" height="150"></td>
+							</tr>
+						</table>
+					</center>
+
+					<p>
+						<small>
+							Created by Mark Perry,
+							<a href="http://twitter.com/mprry">@mprry</a>,
+							<a href="https://plus.google.com/u/0/103753917802203497881/about/p/pub">G+</a>,
+							<a href="http://mperry.github.io/">Blog</a>,
+							<a href="http://www.linkedin.com/in/maperry78">LinkedIn</a>,
+							<a href="https://github.com/mperry">GitHub</a>,
+							maperry78@yahoo.com.au
+						</small>
+					</p>
+
 				</section>
+
 
 			</div>
 

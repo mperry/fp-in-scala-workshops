@@ -1,0 +1,24 @@
+
+				<section>
+					<h2>Properties Files</h2>
+					<pre><code>
+def stringProperty(p: Properties, key: String): Option[String] = {
+	Option(p).map(_.getProperty(key))
+}
+
+def intProperty1(p: Properties, key: String): Option[Int] = {
+	stringProperty(p, key).map(_.toInt)
+}
+
+def sToInt(s: String): Option[Int] = ???
+
+def intProperty2(p: Properties, key: String): Option[Int] = {
+	stringProperty(p, key).flatMap(sToInt(_))
+}
+					</code></pre>
+
+					<pre><code>
+def map[B](f: A => B): Option[B]
+def flatMap[B](f: A => Option[B]): Option[B]
+					</code></pre>
+				</section>

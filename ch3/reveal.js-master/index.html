@@ -64,10 +64,10 @@
 				<section>
 					<h2>Introduction</h2>
 					<ul>
-						<li>FP does not update data structures</li>
+						<li>FP does not update data</li>
 						<li>What do we use instead?</li>
 						<li>Pattern Matching</li>
-						<li>Write pure functions</li>
+						<li>Pure functions</li>
 					</ul>
 				</section>
 
@@ -75,6 +75,7 @@
 					<h2>Functional Data Structures</h2>
 					<ul>
 						<li>Values are immutable!</li>
+						<li>Use pure functions</li>
 						<li>Data copying issue?</li>
 					</ul>
 				</section>
@@ -85,40 +86,18 @@
 						<li>We derive Scala's List</li>
 						<li>See List.scala</li>
 					</ul>
+										<pre><code>
+sealed trait List[+A]
+case object Nil extends List[Nothing]
+case class Cons[+A](head: A, tail: List[A]) extends List[A]
+</pre></code>
 				</section>
 
-				<section>
-
-					<h2>Pattern Matching</h2>
-					<pre><code>
-
-def sum(ints: List[Int]): Int = ints match {
-	case Nil => 0
-	case Cons(x, xs) => x + sum(xs)
-}
-
-def product(ds: List[Double]): Double = ds match {
-	case Nil => 1.0
-	case Cons(0.0, _) => 0.0
-	case Cons(x, xs) => x * product(xs)
-}
-
-					</code></pre>
-				</section>
 
 				<section>
-					<h2>Pattern Matching Examples</h2>
-					<pre><code>
-List(1,2,3) match { case _ => 42 } // 42
-List(1,2,3) match { case Cons(h,t) => h } // 1
-List(1,2,3) match { case Cons(_,t) => t } // List(2, 3)
-List(1,2,3) match { case Nil => 42 } // runtime MatchError
-					</code></pre>
-				</section>
-
-				<section>
-					<h2>Data Sharing</h2>
+					<h2>Immutable Structures</h2>
 					<ul>
+						<li>Reuse list due to immutability</li>
 						<li>Data sharing</li>
 						<li>Avoid copying in loosely coupled OO</li>
 					</ul>
@@ -144,17 +123,58 @@ def list3 = list1 ++ list2
 
 				</section>
 
+
 				<section>
-					<h2>Exercises</h2>
-					<ul>
-						<li>Implement tail</li>
-						<li>Generalise tail to dropWhile</li>
-					</ul>
+					<h2>Tree Insertion</h2>
+<pre><code>
+	def tree = ???
+	def tree2 = insert("e", tree)
+</code></pre>
+					<img src="images/tree_before.png"/>
+					<!--<img src="images/tree_after.png"/>-->
+				</section>
+
+				<section>
+					<h2>Tree Insertion (2)</h2>
+<pre><code>
+	def tree = ???
+	def tree2 = insert("e", tree)
+</code></pre>
+					<img src="images/tree_before.png"/>
+					<img src="images/tree_after.png"/>
+				</section>
+
+
+
+				<section>
+					<h2>Pattern Matching</h2>
 					<pre><code>
-def tail[A](l: List[A]): List[A]
-def dropWhile[A](l: List[A])(f: A => Boolean): List[A]
+sealed trait List[+A]
+case object Nil extends List[Nothing]
+case class Cons[+A](head: A, tail: List[A]) extends List[A]
+
+def sum(ints: List[Int]): Int = ints match {
+	case Nil => 0
+	case Cons(x, xs) => x + sum(xs)
+}
+
+def product(ds: List[Int]): Int = ds match {
+	case Nil => 1.0
+	case Cons(x, xs) => x * product(xs)
+}
 					</code></pre>
 				</section>
+
+				<section>
+					<h2>Pattern Matching Examples</h2>
+					<pre><code>
+List(1,2,3) match { case _ => 42 } // 42
+List(1,2,3) match { case Cons(h,t) => h } // 1
+List(1,2,3) match { case Cons(_,t) => t } // List(2, 3)
+List(1,2,3) match { case Nil => 42 } // runtime MatchError
+					</code></pre>
+				</section>
+
 
 				<section>
 					<h2>Data Sharing Summary</h2>
@@ -169,8 +189,23 @@ def dropWhile[A](l: List[A])(f: A => Boolean): List[A]
 								<li>prepend, append</li>
 							</ul>
 						</li>
+
 					</ul>
+					<img src="images/data.jpg"/>
 				</section>
+
+				<section>
+					<h2>Exercises</h2>
+					<ul>
+						<li>Implement tail</li>
+						<li>Generalise tail to dropWhile</li>
+					</ul>
+					<pre><code>
+def tail[A](l: List[A]): List[A]
+def dropWhile[A](l: List[A], f: A => Boolean): List[A]
+					</code></pre>
+				</section>
+
 
 				<section>
 					<h2>Recursion over Lists</h2>
@@ -180,8 +215,8 @@ def sum(ints: List[Int]): Int = ints match {
 	case Nil => 0
 	case Cons(x,xs) => x + sum(xs)
 }
-def product(ds: List[Double]): Double = ds match {
-	case Nil => 1.0
+def product(ds: List[Int]): Int = ds match {
+	case Nil => 1
 	case Cons(x, xs) => x * product(xs)
 }
 					</code></pre>
@@ -191,20 +226,20 @@ def product(ds: List[Double]): Double = ds match {
 				<section>
 					<h2>Fold</h2>
 <pre><code>
-def foldRight[A,B](l: List[A], z: B)(f: (A, B) => B): B =
+def foldRight[A,B](l: List[A], acc: B, f: (A, B) => B): B =
 	l match {
-		case Nil => z
-		case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+		case Nil => acc
+		case Cons(x, xs) => f(x, foldRight(xs, acc)(f))
 	}
 def sum2(l: List[Int]) =
-	foldRight(l, 0.0)(_ + _)
-def product2(l: List[Double]) =
-	foldRight(l, 1.0)(_ * _)
+	foldRight(l, 0, _ + _)
+def product2(l: List[Int]) =
+	foldRight(l, 1, _ * _)
 
-foldRight(List(1, 2, 3), 0)(_ + _)
-1 + foldRight(Cons(2, Cons(3, Nil)), 0)(_ + _)
-1 + (2 + foldRight(Cons(3, Nil), 0)(_ + _))
-1 + (2 + (3 + (foldRight(Nil, 0)(_ + _))))
+foldRight(List(1, 2, 3), 0, _ + _)
+1 + foldRight(Cons(2, Cons(3, Nil)), 0, _ + _)
+1 + (2 + foldRight(Cons(3, Nil), 0, _ + _))
+1 + (2 + (3 + (foldRight(Nil, 0, _ + _))))
 1 + (2 + (3 + (0)))
 6
 </code></pre>
@@ -213,10 +248,10 @@ foldRight(List(1, 2, 3), 0)(_ + _)
 				<section>
 					<h2>Exercises</h2>
 <pre><code>
-def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+def foldLeft[A,B](l: List[A], acc: B, f: (B, A) => B): B = ???
 def reverse[A](l: List[A]): List[A] = ???
-def map[A,B](l: List[A])(f: A => B): List[B] = ???
-def flatMap[A,B](l: List[A])(f: A => List[B]): List[B] = ???
+def map[A,B](l: List[A], f: A => B): List[B] = ???
+def flatMap[A,B](l: List[A], f: A => List[B]): List[B] = ???
 </code></pre>
 				</section>
 
@@ -226,6 +261,7 @@ def flatMap[A,B](l: List[A])(f: A => List[B]): List[B] = ???
 						<li>Algebraic Data Type (ADT)</li>
 						<li>Not Abstract Data Type (ADT)</li>
 						<li>One or more data constructors</li>
+						<li>Data type is sum of data constructors</li>
 						<li>Data constructor is product of arguments</li>
 						<li>Immutability over encapsulation</li>
 					</ul>
@@ -258,10 +294,10 @@ def flatMap[A,B](l: List[A])(f: A => List[B]): List[B] = ???
 				<section>
 					<h2>Summary</h2>
 					<ul>
-						<li>Algebraic Data Types</li>
 						<li>Pattern Matching</li>
 						<li>Data Sharing</li>
 						<li>Practiced Pure Functions</li>
+						<li>Algebraic Data Types</li>
 					</ul>
 				</section>
 

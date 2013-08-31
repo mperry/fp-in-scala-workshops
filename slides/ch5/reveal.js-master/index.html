@@ -64,21 +64,250 @@
 				</section>
 
 				<section>
-					<h2>Referential Transparency</h2>
+					<h2>Motivation</h2>
 					<ul>
-						<li>Terms can be replaced with definition without affecting behaviour</li>
-					</ul>
+						<li>Previously used map, fold, filter over Lists</li>
+						<li>Composition over lists inefficient</li>
+						</ul>
 						<pre><code>
-val x = "Hello, World"
-val r1 = x.reverse
-val r2 = x.reverse
+List(1,2,3,4).map(_ + 10).filter(_ % 2 == 0).map(_ * 3)
+List(36,42)
 						</code></pre>
+					<ul>
+						<li>Build better List</li>
+						<li>Non strictness improves modularity</li>
+					</ul>
+
+				</section>
+
+				<section>
+					<h2>Definitions</h2>
+					<ul>
+						<li>Non strictness may mean arguments not evaluated</li>
+					</ul>
 					<pre><code>
-val x = new StringBuilder("Hello")
-val y = x.append(", World")
-val r1 = y.toString
-val r2 = y.toString
+square(1 + 2)
+square(sys.error("failure")
 					</code></pre>
+					<ul>
+						<li>Familiar: and, or</li>
+					</ul>
+					<pre><code>
+false && { println("!!"); true }
+true || { println("!!"); false }
+val result = if (false) sys.error("empty input") else input
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Lazy If</h2>
+					<pre><code>
+def if2[A](cond: Boolean, onTrue: => A, onFalse: => A): A =
+	if (cond) onTrue else onFalse
+
+if2(false, sys.error("fail"), 3)
+					</code></pre>
+					<ul>
+						<li>Lazy arguments have => before type</li>
+						<li>Lazy args uncached</li>
+					</ul>
+
+					<pre><code>
+def maybeTwice(b: Boolean, i: => Int) = if (b) i+i else 0
+
+scala> val x = maybeTwice(true, { println("hi"); 1+41 })
+hi
+hi
+x: Int = 84
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Lazy Values</h2>
+					<ul>
+						<li>Can cache result</li>
+						<li>Delay evaluation until used</li>
+						<li>Use keyword lazy</li>
+					</ul>
+					<pre><code>
+def maybeTwice2(b: Boolean, i: => Int) = {
+	lazy val j = i
+	if (b) j+j else 0
+}
+
+val x = maybeTwice2(true, { println("hi"); 1+41 })
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Streams</h2>
+					<ul>
+						<li>Composed functions on streams use single pass</li>
+					</ul>
+					<pre><code>
+sealed abstract class Stream[+A] {
+	def uncons: Option[Cons[A]]
+	def isEmpty: Boolean = uncons.isEmpty
+}
+object Empty extends Stream[Nothing] {
+	val uncons = None
+}
+sealed abstract class Cons[+A] extends Stream[A] {
+	def head: A
+	def tail: Stream[A]
+	val uncons = Some(this)
+}
+
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Stream Companion</h2>
+					<pre><code>
+object Stream {
+	def empty[A]: Stream[A] = Empty
+	def cons[A](h: => A, t: => Stream[A]): Stream[A] = {
+		new Cons[A] {
+			lazy val head = h
+			lazy val tail = t
+		}
+	}
+	def apply[A](as: A*): Stream[A] =
+		if (as.isEmpty)
+			Empty
+		else
+			cons(as.head, apply(as.tail: _*))
+}
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Exercises</h2>
+					<pre><code>
+def toList: List[A]
+def take(n: Int): Stream[A]
+def takeWhile(p: A => Boolean): Stream[A]
+					</code></pre>
+				</section>
+
+				<section>
+
+					<h2>Separation of Concerns</h2>
+					<ul>
+						<li>Computation descriptions vs evaluation</li>
+						<li>Functions describe, evaluation with arguments</li>
+						<li>Option captured error, pattern match for decision</li>
+						<li>Laziness separates description from evaluation</li>
+						<li>Describe large expression, evaluate part of expression</li>
+					</ul>
+
+				</section>
+
+				<section>
+					<h2>Example</h2>
+					<pre><code>
+def exists(p: A => Boolean): Boolean =
+	uncons match {
+		case Some(c) => p(c.head) || c.tail.exists(p)
+		case None => false
+}
+					</code></pre>
+					<ul>
+						<li>Or is non-strict</li>
+						<li>Traversal terminates early</li>
+						<li>Tail may never be evaluated</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Lazy Fold</h2>
+					<pre><code>
+def exists(p: A => Boolean): Boolean =
+	foldRight(false)((a, b) => p(a) || b)
+
+def foldRight[B](acc: => B)(f: (A, => B) => B): B =
+	uncons match {
+		case Some(c) => f(c.head, c.tail.foldRight(acc)(f))
+		case None => acc
+}
+					</code></pre>
+					<ul>
+						<li>Function f is lazy in 2nd argument</li>
+						<li>Can reuse foldRight due to laziness</li>
+						<li>Strict foldRight requires function to terminate early</li>
+						<li>Laziness allowed  more reuse!</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Exercise</h2>
+
+						<ul>
+							<li>Use foldRight to implement takeWhile</li>
+							<li>Implement map, filter, append and flatMap using foldRight</li>
+						</ul>
+
+				</section>
+
+				<section>
+					<h2>Example</h2>
+					<pre><code>
+Stream(1,2,3,4).map(_ + 6).filter(_ % 2 == 0).toList
+
+cons(1, Stream(2,3,4).map(_ + 4)).filter(_ % 2 == 0).toList
+Stream(2,3,4).map(_ + 4).filter(_ % 2 == 0).toList
+cons(6, Stream(3,4).map(_ + 4)).filter(_ % 2 == 0).toList
+6 :: Stream(3,4).map(_ + 4).filter(_ % 2 == 0).toList
+6 :: cons(cons(7, Stream(4)).map(_ + 4)).filter(_ % 2 == 0).toList
+6 :: Stream(4).map(_ + 4).filter(_ % 2 == 0).toList
+6 :: cons(8, Stream().map(_ + 4)).filter(_ % 2 == 0).toList
+6 :: 8 :: Stream().map(_ + 4).filter(_ % 2 == 0).toList
+6 :: 8 :: List()
+					</code></pre>
+					<ul>
+						<li>Process element at a time</li>
+						<li>Filter and map interleaved</li>
+						<li>No intermediate answers</li>
+						<li>Streams as first-class loops</li>
+						<li>Memory efficient</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Infinite Streams</h2>
+					<pre><code>
+val ones: Stream[Int] = cons(1, ones)
+ones.take(5).toList
+>>> res0: List[Int] = List(1, 1, 1, 1, 1)
+ones.forAll(x => x == 1)
+					</code></pre>
+					Write
+					<pre><code>
+def constant[A](a: A): Stream[A]
+def from(n: Int): Stream[Int]
+def fibonacci(a: Int, b: Int): Stream[Int]
+def unfold[A, S](s: S)(f: S => Option[(A, S)]): Stream[A]
+					</code></pre>
+				</section>
+
+				<section>
+					<h2>Unfold</h2>
+					<ul>
+						<li>Unfold is co-recursive</li>
+						<li>Recursion consumes data and terminates</li>
+						<li>Co-recursion produces co-data and co-terminates</li>
+						<li>Can always evaluate more in finite time</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Summary</h2>
+					<ul>
+						<li>Laziness is efficient and modular</li>
+						<li>Separates description of expression and evaluation</li>
+						<li>Reuse description in different contexts</li>
+						<li>Functions can evaluate different portions</li>
+					</ul>
 				</section>
 
 				<section>

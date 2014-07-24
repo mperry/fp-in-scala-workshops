@@ -1,4 +1,4 @@
-package com.github.mperry.fpInScala.chapter3
+package com.github.mperry.fpinscala.chapter3
 
 sealed trait List[+A] // `List` data type
 case object Nil extends List[Nothing] // data constructor for `List`

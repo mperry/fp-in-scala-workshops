@@ -1,7 +1,7 @@
-package fpInScala.chapter2.test
+package fpinscala.chapter2.test
 
-//import com.github.mperry.fpInScala.chapter2.solutions.Solutions._
-//import com.github.mperry.fpInScala.chapter2.solutions.Solutions
+//import com.github.mperry.fpinscala.chapter2.solutions.Solutions._
+//import com.github.mperry.fpinscala.chapter2.solutions.Solutions
 
 /**
  * Created with IntelliJ IDEA.

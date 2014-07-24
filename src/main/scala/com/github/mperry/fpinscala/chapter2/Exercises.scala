@@ -1,4 +1,4 @@
-package fpInScala.chapter2
+package fpinscala.chapter2
 
 /**
  * Created with IntelliJ IDEA.

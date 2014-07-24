@@ -1,4 +1,4 @@
-package fpInScala.chapter4
+package fpinscala.chapter4
 
 import java.util.Properties
 

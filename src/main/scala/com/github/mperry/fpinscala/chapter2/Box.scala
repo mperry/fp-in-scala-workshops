@@ -1,4 +1,4 @@
-package com.github.mperry.fpInScala.chapter2
+package com.github.mperry.fpinscala.chapter2
 
 /**
  * Created with IntelliJ IDEA.

@@ -1,4 +1,4 @@
-package fpInScala.chapter2.test
+package fpinscala.chapter2.test
 
 /**
  * Created with IntelliJ IDEA.

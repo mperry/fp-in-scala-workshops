@@ -1,6 +1,6 @@
-package fpInScala.chapter3.solutions
+package fpinscala.chapter3.solutions
 
-import com.github.mperry.fpInScala.chapter3._
+import com.github.mperry.fpinscala.chapter3._
 
 /**
  * Created with IntelliJ IDEA.

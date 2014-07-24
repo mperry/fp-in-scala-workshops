@@ -196,7 +196,63 @@ def randomPair(rng: RNG): ((Int, Int), RNG) = {
 
 				<section>
 					<h2>Exercises</h2>
+<pre><code>
+	def positiveInt(rng: RNG): (Int, RNG) = ???
 
+	def double(rng: RNG): (Double, RNG) = ???
+
+	def intDouble(rng: RNG): ((Int,Double), RNG) = ???
+	def doubleInt(rng: RNG): ((Double,Int), RNG) = ???
+	def double3(rng: RNG): ((Double,Double,Double), RNG) = ???
+
+	def ints(count: Int)(rng: RNG): (List[Int], RNG) = ???
+</code></pre>
+				</section>
+
+				<section>
+					<h2>State Actions API</h2>
+					<ul>
+						<li>Functions have form: RNG => (A, RNG) </li>
+						<li>State actions or transitions</li>
+						<li>Combine using combinators</li>
+					</ul>
+<pre><code>
+type Rand[+A] = RNG => (A, RNG)
+
+val int: Rand[Int] = _.nextInt
+</code></pre>
+
+				</section>
+
+				<section>
+					<h2>Combinators</h2>
+					<ul>
+						<li>Combine Rand state actions without explicit state</li>
+						<li>DSL similarity?</li>
+					</ul>
+<pre><code>
+type Rand[+A] = RNG => (A, RNG)
+
+// pass RNG action without using it
+def unit[A](a: A): Rand[A] = {
+	rng => (a, rng)
+}
+
+// map the state action A
+def map[A, B](r: Rand[A])(f: A => B): Rand[B] =
+	rng => {
+		val (a, rng2) = r(rng)
+		(f(a), rng2)
+	}
+
+def positiveInt(rng: RNG): (Int, RNG) = ???
+def positiveEven: Rand[Int] =
+	map(positiveInt)(i => i + i % 2)
+</code></pre>
+				</section>
+
+				<section>
+					<h2>Combining State Actions 6.4.1</h2>
 				</section>
 
 				<section>

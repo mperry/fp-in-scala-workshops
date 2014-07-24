@@ -9,24 +9,26 @@ package com.github.mperry.fpinscala.chapter2.solutions
  */
 object Solutions {
 
-	def compose[A, B, C] (f: B => C, g: A => B): A => C = { a: A =>
-		f(g(a))
+	def compose[A, B, C] (f: B => C, g: A => B): A => C = {
+		a: A => f(g(a))
 	}
 
-	def flip [A, B, C] (f: (A, B) => C): (B, A) => C = { (b, a) =>
-		f(a, b)
+	def flip [A, B, C] (f: (A, B) => C): (B, A) => C = {
+		(b, a) => f(a, b)
 	}
 
-	def curry [A, B, C] (f: (A, B) => C): A => B => C = { a =>
-		f(a, _)
+	def curry [A, B, C] (f: (A, B) => C): A => B => C = {
+		a => (b => f(a, b))
+//		a => f(a, _)
 	}
 
-	def uncurry[A,B,C](f: A => B => C): (A, B) => C = { (a, b) =>
-		f(a)(b)
+	def uncurry[A,B,C](f: A => B => C): (A, B) => C = {
+		(a, b) => f(a)(b)
 	}
 
 	def partial1[A, B, C] (f: (A, B) => C, a: A): B => C = {
 		f(a, _)
+		// b => f(a, b)
 	}
 
 }

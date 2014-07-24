@@ -1,4 +1,4 @@
-package fpinscala.chapter2.test
+package com.github.mperry.fpinscala.chapter2.test
 
 /**
  * Created with IntelliJ IDEA.

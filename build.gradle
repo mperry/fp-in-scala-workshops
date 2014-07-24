@@ -22,10 +22,10 @@ repositories {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     // We use Scala 2.11 in our library project
-    compile 'org.scala-lang:scala-library:2.11.1'
+    compile 'org.scala-lang:scala-library:2.10.4'
 
     // We use Scalatest for testing our library
     testCompile 'junit:junit:4.11'
-    testCompile 'org.scalatest:scalatest_2.11:2.2.0'
-    testRuntime 'org.scala-lang.modules:scala-xml_2.11:1.0.2'
+    testCompile 'org.scalatest:scalatest_2.10:2.2.0'
+//    testRuntime 'org.scala-lang.modules:scala-xml_2.11:1.0.2'
 }

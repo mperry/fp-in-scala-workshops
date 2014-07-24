@@ -1,4 +1,4 @@
-package fpinscala.chapter2.test
+package com.github.mperry.fpinscala.chapter2.test
 
 //import com.github.mperry.fpinscala.chapter2.solutions.Solutions._
 //import com.github.mperry.fpinscala.chapter2.solutions.Solutions

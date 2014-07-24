@@ -1,4 +1,4 @@
-package fpinscala.chapter2.solutions
+package com.github.mperry.fpinscala.chapter2.solutions
 
 /**
  * Created with IntelliJ IDEA.

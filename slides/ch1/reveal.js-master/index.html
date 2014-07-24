@@ -62,11 +62,14 @@
 				</section>
 				<section>
 					<h2>Introduction</h2>
-					<ul>
-						<li>Goal: Begin learning Functional Programming (FP) in Scala</li>
-						<li>Premise: Programs from pure or side-effect free functions</li>
-						<li>Some techniques feel strange, keep an open mind</li>
-					</ul>
+                    <p>
+                    <ul>
+                        <li>Goal: Learn FP Scala</li>
+                        <li>Premise: Programs from pure functions</li>
+                        <li>Can feel strange - keep an open mind</li>
+                    </ul>
+                    </p>
+
 				</section>
 
 				<section>
@@ -89,7 +92,7 @@
 									<li>Monads</li>
 									<li>Applicative Functors</li>
 									<li>External Effects and I/O</li>
-									<li>Local Effects and the ST Monad</li>
+									<li>Local Effects and Mutable State</li>
 									<li>Stream Processing and Incremental I/O</li>
 								</td>
 							</tr>
@@ -100,109 +103,135 @@
 				<section>
 					<h2>Premise</h2>
 					<ul>
-						<li>Premise: Programs from pure or side-effect free functions</li>
+						<li>Premise: Programs from pure functions</li>
 						<li>Using book, "Functional Programming in Scala"</li>
 						<li>FP is less powerful than imperative</li>
-						<li>But - big increase in modularity</li>
-						<li>Easier to test, reuse, parallelise, generalise and reason about</li>
-						<li>Effects occur without being observed</li>
+						<li>Increased modularity</li>
+						<li>Easier to:
+                            <ul>
+                                <li>write</li>
+                                <li>test</li>
+                                <li>reuse</li>
+                                <li>reason</li>
+                                <li>scale</li>
+                            </ul>
+						<li>Effects aren't observed</li>
+
 					</ul>
 				</section>
 
 				<section>
 					<h2>Purity</h2>
 					<ul>
-						<li>every value A has just one B, f: A => B</li>
+						<li>every X has just one Y, f: X => Y</li>
+                        <img src="http://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Multivalued_function.svg/200px-Multivalued_function.svg.png"/>
 						<li>intToString: Int => String</li>
 						<li><h2>and nothing else!</h2></li>
-						<li>Referential transparency: expressions can be replaced with result</li>
+
+
+                        <li>Referential transparency: replace expression with result</li>
 					</ul>
 				</section>
 
 				<section>
 					<h2>Example</h2>
 					<ul>
-						<li>Using RT, substitute variables with values</li>
-						<li>Equational reasoning: always used naturally, even in non-FP languages</li>
+						<li>Replace expression with value</li>
+						<li>Equational reasoning</li>
 					</ul>
 					<pre><code>
-val x = "Hello, World"
+val x = "Hello world"
 val r1 = x.reverse
 val r2 = x.reverse
 					</code></pre>
 					<pre><code>
-val r1 = "Hello, World".reverse
-val r2 = "Hello, World".reverse
+// replace x with "Hello world"
+val r1 = "Hello world".reverse
+val r2 = "Hello world".reverse
  					</code></pre>
 				</section>
 				<section>
 					<h2>Non RT Example</h2>
-					<ul>
-					</ul>
+
 					<pre><code>
-val x = new StringBuilder("Hello")
-val y = x.append(", World")
-val r1 = y.toString
-val r2 = y.toString
+val sb = new StringBuilder("Hello")
+val x = sb.append(" world").toString // "Hello world"
+val y = sb.toString // "Hello world"
 					</code></pre>
 					<pre><code>
-val x = new StringBuilder("Hello")
-val r1 = x.append(", World").toString
-val r2 = x.append(", World").toString
+// replace sb with: new StringBuilder("Hello")
+val sb = new StringBuilder("Hello")
+val x = new StringBuilder("Hello").append(" world").toString // "Hello world"
+val y = new StringBuilder("Hello").toString // "Hello"
 					</code></pre>
 				</section>
 
 				<section>
 					<h2>Why FP?</h2>
 					<ul>
-						<li>Modularity: Components can be understood independently</li>
+						<li>Modularity: Components understood independently</li>
 						<li>Compositon: f(g(x)) = (f compose g)(x)</li>
 						<li>Whole system depends only on composition</li>
 						<li>Separate:
 							<ul>
-								<li>Logic of computation</li>
-								<li>What to do with result</li>
-								<li>How to obtain input</li>
+                                <li>Inputs</li>
+								<li>Computation logic</li>
+								<li>Result usage</li>
+
 							</ul>
 						</li>
-						<li>Can reuse computation without concern for side effects</li>
+						<li>Can reuse computation without concern for effects</li>
 					</ul>
 				</section>
 
+                <section>
+                    <h2>Non RT System</h2>
+                    <ul>
+                        <img src="../../images/system.png" height="300">
+                    </ul>
+                </section>
+
 				<section>
 					<h2>Refunctoring</h2>
-					<pre><code>
+					<pre><code class="scala">
 case class Player(name: String, score: Int)
 
-def printWinner(p: Player): Unit =
-	println(p.name + " is the winner!")
-
 def declareWinner(p1: Player, p2: Player): Unit =
-	if (p1.score > p2.score) printWinner(p1)
-	else printWinner(p2)
+    if (p1.score > p2.score) printWinner(p1)
+    else printWinner(p2)
+
+def printWinner(p: Player): Unit =
+    println(p.name + " is the winner!")
 					</code></pre>
 
 					<pre><code>
-def winner(p1: Player, p2: Player): Player =
-	if (p1.score > p2.score) p1 else p2
-
 def declareWinner(p1: Player, p2: Player): Unit =
-	printWinner(winner(p1, p2))
+    printWinner(winner(p1, p2))
+
+def winner(p1: Player, p2: Player): Player =
+    if (p1.score > p2.score) p1 else p2
+
 					</code></pre>
 
 				</section>
+
+                <section>
+                    <h2>Better System</h2>
+                    <ul>
+                        <img src="../../images/pure-system.png" height="300">
+                    </ul>
+                </section>
 
 				<section>
 					<h2>Principles</h2>
 					<ul>
-						<li>FP is just normal separation of concerns</li>
-						<li>Any function with side effects can be split into:
+						<li>Functions with side effects are split:
 							<ul>
 								<li>Pure function</li>
-								<li>Function(s) with side effect on input/output</li>
+								<li>Effect on IO</li>
 							</ul>
 						</li>
-						<li>Side effects push to outer core</li>
+						<li>Push effects to the outside</li>
 						<li>Pure, reusable inner core</li>
 					</ul>
 				</section>

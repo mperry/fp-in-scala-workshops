@@ -1,7 +1,7 @@
 fp-in-scala-workshops
 =====================
 
-This is a repository of talks based following the book "Functional Programming in Scala" by Chiusano and Bjarnason, currently in MEAP from [Manning](http://www.manning.com/bjarnason/).  There is a github repository, [https://github.com/fpinscala/fpinscala](https://github.com/fpinscala/fpinscala), supporting the book.
+This is a repository of talks based following the book "Functional Programming in Scala" by Chiusano and Bjarnason, currently an early access edition [MEAP from Manning](http://www.manning.com/bjarnason/).  There is a github repository, [https://github.com/fpinscala/fpinscala](https://github.com/fpinscala/fpinscala), supporting the book.
 
 Chapter Links:
 

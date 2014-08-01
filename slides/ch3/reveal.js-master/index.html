@@ -37,8 +37,8 @@
 			<div class="slides">
 
 				<section>
-					<h2>Functional Programming in Scala</h2>
-					<h3>Functional Data Structures</h3>
+                    <h2>Functional Data Structures</h2>
+					<h4>Functional Programming in Scala</h4>
 					<p>
 						<small>
 							Created by Mark Perry,
@@ -71,16 +71,34 @@
 					</ul>
 				</section>
 
-				<section>
-					<h2>Functional Data Structures</h2>
-					<ul>
-						<li>Values are immutable!</li>
-						<li>Use pure functions</li>
-						<li>Data copying issue?</li>
-					</ul>
-				</section>
+                <section>
+                    <h2>Referential Transparency</h2>
 
-				<section>
+<pre><code>
+    // appending is not referentially transparent
+    val list = MutableList(1)
+    val x = list.append(2)
+    val y = list.append(3)
+</pre></code>
+
+<pre><code>
+    val list = MutableList(1)
+    val x = MutableList(1, 2)
+    val y = MutableList(1, 2, 3)
+</pre></code>
+
+                </section>
+
+                <section>
+                    <h2>Functional Data Structures</h2>
+                    <ul>
+                        <li>Values are immutable!</li>
+                        <li>Use pure functions</li>
+                        <li>Data copying issue?</li>
+                    </ul>
+                </section>
+
+                <section>
 					<h2>Singly Linked List</h2>
 					<ul>
 						<li>We derive Scala's List</li>
@@ -90,6 +108,12 @@
 sealed trait List[+A]
 case object Nil extends List[Nothing]
 case class Cons[+A](head: A, tail: List[A]) extends List[A]
+
+val a: List[Double] = Nil
+val b = Cons(1, Nil)
+val c = Cons("a", Cons("b", Nil))
+val d = List(1, 2, 3)
+val e = Cons(1, Cons(2, Cons(3, Nil)))
 </pre></code>
 				</section>
 
@@ -106,9 +130,9 @@ case class Cons[+A](head: A, tail: List[A]) extends List[A]
 				<section>
 					<h2>List Sharing</h2>
 					<pre><code>
-def list1 = List(0, 1, 2)
-def list2 = List(3, 4, 5)
-def list3 = list1 ++ list2
+val xs = List(0, 1, 2)
+val ys = List(3, 4, 5)
+val zs = list1 ++ list2 // List(0, 1, 2, 3, 4, 5)
 					</code></pre>
 
 					<table cellspacing="40">
@@ -118,8 +142,8 @@ def list3 = list1 ++ list2
 
 						</tr>
 					</table>
-					<img src="images/list_before.png"/>
-					<img src="images/list_after.png" height="350"/>
+					<!--<img src="images/list_before.png"/>-->
+					<!--<img src="images/list_after.png" height="350"/>-->
 
 				</section>
 
@@ -127,8 +151,8 @@ def list3 = list1 ++ list2
 				<section>
 					<h2>Tree Insertion</h2>
 <pre><code>
-	def tree = ???
-	def tree2 = insert("e", tree)
+val xs = ??? // a tree
+val ys = tree.insert("e")
 </code></pre>
 					<img src="images/tree_before.png"/>
 					<!--<img src="images/tree_after.png"/>-->
@@ -137,16 +161,49 @@ def list3 = list1 ++ list2
 				<section>
 					<h2>Tree Insertion (2)</h2>
 <pre><code>
-	def tree = ???
-	def tree2 = insert("e", tree)
+val xs = ???
+val ys = tree.insert("e")
 </code></pre>
 					<img src="images/tree_before.png"/>
 					<img src="images/tree_after.png"/>
 				</section>
 
+                <section>
+                    <h2>Data Sharing</h2>
+                    <ul>
+                        <li>Efficiency from data sharing</li>
+                        <li>Often needs tree structures</li>
+                        <li>Scala Vector, O(1)
+                            <ul>
+                                <li>random access</li>
+                                <li>update</li>
+                                <li>head, tail, init</li>
+                                <li>prepend, append</li>
+                            </ul>
+                        </li>
+                        <li>Vector Trie</li>
+
+                    </ul>
+                    <img src="images/data.jpg" width="150"/>
+                </section>
+
+                <section>
+                    <h2>Pattern Matching</h2>
+<pre><code>
+sealed trait List[+A]
+case object Nil extends List[Nothing]
+case class Cons[+A](head: A, tail: List[A]) extends List[A]
+
+val list = List(1, 2, 3)
+list match { case _ => 42 } // 42
+list match { case Cons(h, t) => h } // 1
+list match { case Cons(_, t) => t } // List(2, 3)
+list match { case Nil => 42 } // runtime MatchError
+</code></pre>
+                </section>
 
 
-				<section>
+                <section>
 					<h2>Pattern Matching</h2>
 					<pre><code>
 sealed trait List[+A]
@@ -158,40 +215,11 @@ def sum(ints: List[Int]): Int = ints match {
 	case Cons(x, xs) => x + sum(xs)
 }
 
-def product(ds: List[Int]): Int = ds match {
+def product(ds: List[Double]): Int = ds match {
 	case Nil => 1.0
 	case Cons(x, xs) => x * product(xs)
 }
 					</code></pre>
-				</section>
-
-				<section>
-					<h2>Pattern Matching Examples</h2>
-					<pre><code>
-List(1,2,3) match { case _ => 42 } // 42
-List(1,2,3) match { case Cons(h,t) => h } // 1
-List(1,2,3) match { case Cons(_,t) => t } // List(2, 3)
-List(1,2,3) match { case Nil => 42 } // runtime MatchError
-					</code></pre>
-				</section>
-
-
-				<section>
-					<h2>Data Sharing Summary</h2>
-					<ul>
-						<li>Efficiency from data sharing</li>
-						<li>Often needs tree structures</li>
-						<li>Example Scala Vector, O(1)
-							<ul>
-								<li>random access</li>
-								<li>update</li>
-								<li>head, tail, init</li>
-								<li>prepend, append</li>
-							</ul>
-						</li>
-
-					</ul>
-					<img src="images/data.jpg"/>
 				</section>
 
 				<section>
@@ -211,13 +239,17 @@ def dropWhile[A](l: List[A], f: A => Boolean): List[A]
 					<h2>Recursion over Lists</h2>
 					Look similar?
 					<pre><code>
-def sum(ints: List[Int]): Int = ints match {
-	case Nil => 0
-	case Cons(x,xs) => x + sum(xs)
+def sum(list: List[Int]): Int = {
+    list match {
+        case Nil => 0
+        case Cons(x,xs) => x + sum(xs)
+    }
 }
-def product(ds: List[Int]): Int = ds match {
-	case Nil => 1
-	case Cons(x, xs) => x * product(xs)
+def product(list: List[Double]): Double = {
+    list match {
+        case Nil => 1
+        case Cons(x, xs) => x * product(xs)
+    }
 }
 					</code></pre>
 
@@ -226,69 +258,77 @@ def product(ds: List[Int]): Int = ds match {
 				<section>
 					<h2>Fold</h2>
 <pre><code>
-def foldRight[A,B](l: List[A], acc: B, f: (A, B) => B): B =
-	l match {
-		case Nil => acc
-		case Cons(x, xs) => f(x, foldRight(xs, acc)(f))
-	}
-def sum2(l: List[Int]) =
-	foldRight(l, 0, _ + _)
-def product2(l: List[Int]) =
-	foldRight(l, 1, _ * _)
+def fold[A,B](list: List[A], acc: B)(f: (A, B) => B): B = ???
 
-foldRight(List(1, 2, 3), 0, _ + _)
-1 + foldRight(Cons(2, Cons(3, Nil)), 0, _ + _)
-1 + (2 + foldRight(Cons(3, Nil), 0, _ + _))
-1 + (2 + (3 + (foldRight(Nil, 0, _ + _))))
+def sum2(list: List[Int]) = {
+    fold(list, 0, _ + _)
+}
+def product2(list: List[Double]) = {
+    fold(list, 1, _ * _)
+}
+</code></pre>
+				</section>
+
+                <section>
+                    <h2>Fold Right</h2>
+<pre><code>
+def foldRight[A,B](list: List[A], acc: B)(f: (A, B) => B): B = {
+    list match {
+        case Nil => acc
+        case Cons(x, xs) => f(x, foldRight(xs, acc)(f))
+    }
+}
+
+foldRight(List(1, 2, 3), 0)(_ + _)
+1 + foldRight(List(2, 3), 0)(_ + _)
+1 + (2 + foldRight(List(3), 0)(_ + _))
+1 + (2 + (3 + (foldRight(Nil, 0)(_ + _))))
 1 + (2 + (3 + (0)))
 6
 </code></pre>
-				</section>
+                </section>
+
 
 				<section>
 					<h2>Exercises</h2>
 <pre><code>
-def foldLeft[A,B](l: List[A], acc: B, f: (B, A) => B): B = ???
+def foldLeft[A,B](l: List[A], acc: B)(f: (B, A) => B): B = ???
 def reverse[A](l: List[A]): List[A] = ???
-def map[A,B](l: List[A], f: A => B): List[B] = ???
-def flatMap[A,B](l: List[A], f: A => List[B]): List[B] = ???
+def map[A,B](l: List[A])(f: A => B): List[B] = ???
+def flatten[A](l: List[List[A]]): List[A] = ???
+def flatMap[A,B](l: List[A])(f: A => List[B]): List[B] = ???
 </code></pre>
 				</section>
 
+
 				<section>
 					<h2>Trees</h2>
-					<ul>
-						<li>Algebraic Data Type (ADT)</li>
-						<li>Not Abstract Data Type (ADT)</li>
-						<li>One or more data constructors</li>
-						<li>Data type is sum of data constructors</li>
-						<li>Data constructor is product of arguments</li>
-						<li>Immutability over encapsulation</li>
-					</ul>
-					<a href="https://www.youtube.com/watch?v=ftgAG3Vnif8"><img src="images/claw.png"/></a>
-				</section>
-
-				<section>
-					<h2>Tree Definition</h2>
+                    <img src="images/tree_before.png"/>
 <pre><code>
-	sealed trait Tree[+A]
-	case class Leaf[A](value: A) extends Tree[A]
-	case class Branch[A](left: Tree[A], right: Tree[A]) extends Tree[A]
-
-	def depth[A](tree: Tree[A]): Int = ???
-	def map[A, B](tree: Tree[A], f: A => B): Tree[B] = ???
+sealed trait Tree[+A]
+case class Leaf[A](value: A) extends Tree[A]
+case class Branch[A](left: Tree[A], node: A, right: Tree[A]) extends Tree[A]
 </code></pre>
 				</section>
 
 				<section>
 					<h2>Tree Insertion</h2>
 <pre><code>
-	def tree = ???
-	def tree2 = insert("e", tree)
+	def xs = ???
+	def ys = tree.insert("e")
 </code></pre>
+                    <img src="images/tree_before.png"/>
+                    <img src="images/tree_after.png"/>
 
-					<img src="images/tree_before.png"/>
-					<img src="images/tree_after.png"/>
+                </section>
+
+                    <section>
+                        <h2>Exercises</h2>
+<pre><code>
+def size[A](tree: Tree[A]): Int = ???
+def depth[A](tree: Tree[A]): Int = ???
+def map[A, B](tree: Tree[A])(f: A => B): Tree[B] = ???
+</code></pre>
 				</section>
 
 				<section>
@@ -297,7 +337,6 @@ def flatMap[A,B](l: List[A], f: A => List[B]): List[B] = ???
 						<li>Pattern Matching</li>
 						<li>Data Sharing</li>
 						<li>Practiced Pure Functions</li>
-						<li>Algebraic Data Types</li>
 					</ul>
 				</section>
 

@@ -40,7 +40,6 @@ object List { // `List` companion object
     }
 
 	val tailDemo = tail(List(2, 4, 6))
-	val dropWhileDemo = dropWhile(List(2, 4, 6, 8), (x: Int) => x < 5)
 
 	def tail[A](l: List[A]): List[A] = {
 		l match {
@@ -49,6 +48,7 @@ object List { // `List` companion object
 		}
 	}
 
+	val dropWhileDemo = dropWhile(List(2, 4, 6, 8), (x: Int) => x < 5)
 	val list1 = dropWhile(List(1, 4, 7, 2, 9), (x: Int) => x < 5)
 
 	def dropWhile[A](l: List[A], f: A => Boolean): List[A] = {

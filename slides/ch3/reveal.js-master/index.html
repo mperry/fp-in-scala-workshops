@@ -214,7 +214,7 @@ def sum(ints: List[Int]): Int = {
     }
 }
 
-def product(ds: List[Double]): Int = {
+def product(ds: List[Double]): Double = {
     ds match {
         case Nil => 1.0
         case Cons(x, xs) => x * product(xs)
@@ -348,6 +348,7 @@ def size[A](tree: Tree[A]): Int = ???
 def depth[A](tree: Tree[A]): Int = ???
 def map[A, B](tree: Tree[A])(f: A => B): Tree[B] = ???
 def foldLeft[A, B](tree: Tree[A], f: (A, B) => B): B = ???
+def traverseLeft[A](tree: Tree[A]): List[A] = ???
 </code></pre>
 				</section>
 

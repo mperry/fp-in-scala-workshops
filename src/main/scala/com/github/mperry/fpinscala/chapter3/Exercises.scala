@@ -1,6 +1,6 @@
 package com.github.mperry.fpinscala.chapter3
 
-import fpinscala.datastructures.Tree
+import fpinscala.datastructures.{Branch, Leaf, Tree}
 
 /**
  * Created by mperry on 1/08/2014.
@@ -20,9 +20,9 @@ object Exercises {
 		???
 	}
 
-	val dropWhileDemo = dropWhile(List(2, 4, 6, 8), (x: Int) => x < 5)
+	val dropWhileDemo = dropWhile(List(2, 4, 5, 1, 3, 8, 4, 6, 8))(x => x < 5)
 
-	def dropWhile[A](list: List[A], f: A => Boolean): List[A] = {
+	def dropWhile[A](list: List[A])(f: A => Boolean): List[A] = {
 		???
 	}
 
@@ -61,7 +61,11 @@ object Exercises {
 		???
 	}
 
-	def foldLeft[A, B](tree: Tree[A], f: (A, B) => B): B = {
+	def foldLeft[A, B](tree: Tree[A], acc: B)(f: (A, B) => B): B = {
+		???
+	}
+
+	def traverseLeft[A](tree: Tree[A]): List[A] = {
 		???
 	}
 

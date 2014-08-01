@@ -1,6 +1,7 @@
 package fpinscala.chapter3.solutions
 
 import com.github.mperry.fpinscala.chapter3._
+import fpinscala.datastructures.{Branch, Leaf, Tree}
 
 /**
  * Created with IntelliJ IDEA.
@@ -34,12 +35,42 @@ class Solutions {
 		l match {
 			case Nil => Nil
 			case Cons(h, t) =>
-				if (f(h)) {
-					dropWhile(t, f)
-				} else {
-					l
-				}
+				if (f(h)) dropWhile(t, f) else l
 		}
 	}
 
+	def reverse[A](list: List[A]): List[A] = {
+		???
+	}
+
+	/////////////////////////
+	// trees
+
+	def size[A](tree: Tree[A]): Int = {
+		foldLeft(tree, 0)((a, b) => 1 + b)
+	}
+
+	def depth[A](tree: Tree[A]): Int = {
+		???
+	}
+
+	def map[A, B](tree: Tree[A], f: A => B): Tree[B] = {
+		???
+	}
+
+	def foldLeft[A, B](tree: Tree[A], acc: B)(f: (A, B) => B): B = {
+		tree match {
+			case Leaf => acc
+			case Branch(l, n, r) => {
+				foldLeft(r, f(n, foldLeft(l, acc)(f)))(f)
+			}
+		}
+	}
+
+	def traverseLeft[A](tree: Tree[A]): List[A] = {
+		val n: List[A] = Nil
+		reverse(foldLeft(tree, Nil: List[A])((a, acc) => Cons(a, acc)))
+	}
+
 }
+

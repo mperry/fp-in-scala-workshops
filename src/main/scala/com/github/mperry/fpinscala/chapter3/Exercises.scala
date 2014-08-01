@@ -61,4 +61,8 @@ object Exercises {
 		???
 	}
 
+	def foldLeft[A, B](tree: Tree[A], f: (A, B) => B): B = {
+		???
+	}
+
 }

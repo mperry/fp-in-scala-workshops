@@ -11,7 +11,7 @@ object Exercises {
 
 	def sum(ints: List[Int]): Int = ints match { // Pattern matching example
 		case Nil => 0
-		case Cons(x,xs) => x + sum(xs)
+		case Cons(x, xs) => x + sum(xs)
 	}
 
 	val tailDemo = tail(List(2, 4, 6))
@@ -26,7 +26,7 @@ object Exercises {
 		???
 	}
 
-	def foldLeft[A,B](list: List[A], acc: B)(f: (B, A) => B): B = {
+	def foldLeft[A,B](list: List[A], acc: B, f: (B, A) => B): B = {
 		???
 	}
 
@@ -42,7 +42,7 @@ object Exercises {
 		???
 	}
 
-	def flatMap[A,B](list: List[A])(f: A => List[B]): List[B] = {
+	def flatMap[A,B](list: List[A], f: A => List[B]): List[B] = {
 		???
 	}
 
@@ -57,7 +57,7 @@ object Exercises {
 		???
 	}
 
-	def map[A, B](tree: Tree[A])(f: A => B): Tree[B] = {
+	def map[A, B](tree: Tree[A], f: A => B): Tree[B] = {
 		???
 	}
 

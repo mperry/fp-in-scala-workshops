@@ -66,56 +66,88 @@
 				<section>
 					<h2>Referential Transparency</h2>
 					<ul>
-						<li>Terms can be replaced with definition without affecting behaviour</li>
+						<li>Replace terms with value</li>
 					</ul>
-						<pre><code>
-val x = "Hello, World"
-val r1 = x.reverse
-val r2 = x.reverse
-						</code></pre>
-					<pre><code>
-val x = new StringBuilder("Hello")
-val y = x.append(", World")
-val r1 = y.toString
-val r2 = y.toString
-					</code></pre>
+<pre><code>
+    // append not RT
+    val list = MutableList(1)
+    val x = list.append(2)
+    val y = list.append(3)
+    assert(x == MutableList(1, 2, 3))
+</pre></code>
+
+<pre><code>
+    val list = MutableList(1)
+    val x = MutableList(1, 2)
+    val y = MutableList(1, 2, 3)
+    assert(x == MutableList(1, 2))
+</pre></code>
+
 				</section>
 
 				<section>
 					<h2>Exceptions break RT</h2>
-					<pre><code>
-def f1(i: Int): Int = {
-	val x: Int = throw new Exception("fail!")
-	try {
-		val y = i + 1
-		x + y
-	}
-	catch { case e: Exception => 2 }
+<pre><code>
+def function1(i: Int): Int = {
+    val x: Int = throw new Exception("fail!")
+    try {
+        val y = i + 1
+        x + y
+    }
+    catch { case e: Exception => 2 }
 }
-					</code></pre>
-				</section>
+</code></pre>
+<pre><code>
+def function1(i: Int): Int = {
+    try {
+        val y = i + 1
+        throw new Exception("fail!") + y
+    } catch { case e: Exception => 2 }
+}
+</code></pre>
+
+                </section>
 
 				<section>
 					<h2>Exceptions break RT (2)</h2>
-					<pre><code>
-def f1: Int = {
-	try {
-		f2(throw new Exception1(), throw new Exception2())
-	} catch (Exception1 e) {
-		-1
-	} catch (Exception2 e) {
-		-2
-	}
+<pre><code>
+def function2: Int = {
+    try {
+        f2(throw new Exception1(), throw new Exception2())
+    } catch (Exception1 e) {
+        -1
+    } catch (Exception2 e) {
+        -2
+    }
 }
-					</code></pre>
-				</section>
+</code></pre>
+<pre><code>
+def function3: Int = {
+    try {
+        val a = f(1)
+        val b = a + g(2)
+        val c = h(3)
+        f(a, b, c)
+    } catch (ExceptionF e) {
+        -1
+    } catch (ExceptionG e) {
+        -2
+    } (catch ExceptionH e)
+        -3
+    }
+}
+</code></pre>
+
+                </section>
+
 
 				<section>
 					<h2>Exceptions and RT</h2>
 					<ul>
 						<li>RT breaks when handling exceptions</li>
 						<li>Uses implicit stack state</li>
-						<li>Modelled using Continuations</li>
+						<li>Modelled using continuations</li>
+					</ul>
 					</ul>
 				</section>
 
@@ -124,8 +156,8 @@ def f1: Int = {
 					<ul>
 						<li>Use a sentinel value</li>
 						<ul>
-							<li>Errors can propagate silently</li>
-							<li>May be no valid sentinel</li>
+							<li>Errors propagate silently</li>
+							<li>No valid sentinel?</li>
 							<li>Callers must know of special values, bad for reuse (HOF)</li>
 						</ul>
 						<li>Force caller to give default value</li>
@@ -141,17 +173,15 @@ def f1: Int = {
 						<li>Need type that sometimes has a value</li>
 						<li>Convert function from partial to total</li>
 					</ul>
-					<pre>
-						<code>
+<pre><code>
 sealed trait Option[+A]
 case class Some[+A](get: A) extends Option[A]
 case object None extends Option[Nothing]
 
 def mean(xs: Seq[Double]): Option[Double] =
-	if (xs.isEmpty) None
-	else Some(xs.sum / xs.length)
-						</code>
-					</pre>
+    if (xs.isEmpty) None
+    else Some(xs.sum / xs.length)
+</code></pre>
 				</section>
 				<section>
 					<h2>Option Usage Patterns</h2>
@@ -159,17 +189,15 @@ def mean(xs: Seq[Double]): Option[Double] =
 						<li>Examples: Map lookup, first/last in list</li>
 						<li>Factor out common error handling</li>
 					</ul>
-					<pre>
-						<code>
+					<pre><code>
 trait Option[+A] {
-	def map[B](f: A => B): Option[B]
-	def flatMap[B](f: A => Option[B]): Option[B]
-	def getOrElse[B >: A](default: => B): B
-	def orElse[B >: A](ob: => Option[B]): Option[B]
-	def filter(f: A => Boolean): Option[A]
+    def map[B](f: A => B): Option[B]
+    def flatMap[B](f: A => Option[B]): Option[B]
+    def getOrElse[B >: A](default: => B): B
+    def orElse[B >: A](ob: => Option[B]): Option[B]
+    def filter(f: A => Boolean): Option[A]
 }
-						</code>
-					</pre>
+</code></pre>
 					<ul>
 
 					</ul>
@@ -180,24 +208,24 @@ trait Option[+A] {
 case class Employee(name: String, department: String)
 val employeesByName: Map[String, Employee] = ???
 					</code></pre>
-					<pre><code>
+<pre><code>
 val joeDept: String =
-	employeesByName.get("Joe").
-	map(_.dept).
-	filter(_ != "Accounting").
-	getOrElse("Default Dept")
-</code> </pre>
-<pre> <code>
+    employeesByName.get("Joe").
+    map(_.dept).
+    filter(_ != "Accounting").
+    getOrElse("Default Dept")
+</code></pre>
+<pre><code>
 public String getJoeDept() {
-	String defaultDept = "Default Dept"
-	String key = "Joe"
-	if (!employeesByName.hasKey(key)) {
-		return defaultDept
-	} else {
-		Department dept = employeesByName.get(key).getDepartment()
-		return dept == "Accounting" ? dept : defaultDept
-	}
-}</code> </pre>
+    String defaultDept = "Default Dept"
+    String key = "Joe"
+    if (!employeesByName.hasKey(key)) {
+        return defaultDept
+    } else {
+        Department dept = employeesByName.get(key).getDepartment()
+        return dept == "Accounting" ? dept : defaultDept
+    }
+}</code></pre>
 				</section>
 				<section>
 					<h2>Composition and Lifting</h2>
@@ -206,173 +234,174 @@ public String getJoeDept() {
 						<li>Map lifts ordinary functions into Option</li>
 						<li>Turns A => B into Option[A] => Option[B]</li>
 					</ul>
-					<pre>
-						<code>
-def lift[A,B](f: A => B): Option[A] => Option[B] =
-	_ map f
-	//{ o => o.map(f) }
-						</code>
-					</pre>
+<pre><code>
+def lift[A,B](f: A => B): Option[A] => Option[B] = {
+    o => o.map(f)
+    // _ map f
+}
+</code></pre>
 				</section>
 
 				<section>
 					<h2>Lifting Using Map</h2>
-					<pre><code>
+<pre><code>
 import java.util.regex._
 def pattern(s: String): Option[Pattern] =
-	try {
-		Some(Pattern.compile(s))
-	} catch {
-		case e: PatternSyntaxException => None
-	}
+    try {
+        Some(Pattern.compile(s))
+    } catch {
+        case e: PatternSyntaxException => None
+    }
 }
-					</code></pre>
-					<pre><code>
-def mkMatcher(pat: String): Option[String => Boolean] =
-	pattern(pat) map (p => (s: String) => p.matcher(s).matches)
-					</code></pre>
+</code></pre>
+<pre><code>
+def mkMatcher(pat: String): Option[String => Boolean] = {
+    pattern(pat).map(p => (s: String) => p.matcher(s).matches)
+}
+</code></pre>
 				</section>
 
 				<section>
 					<h2>Lifting Using For Comprehension</h2>
 
-					<pre><code>
-def doesMatch1(pat: String, s: String): Option[Boolean] =
-	for {
-		f <- mkMatcher(pat)
-	} yield f(s)
+<pre><code>
+def doesMatch(pat: String, s: String): Option[Boolean] =
+    // case 1
+    mkMatcher(pat).map(_(s))
+
+    // case 2
+    mkMatcher(pat).map((f: String => Boolean) => f(s))
+
+    // case 3
+    for {
+        f <- mkMatcher(pat)
+    } yield f(s)
 }
-					</code></pre>
-					<pre><code>
-def doesMatch2(pat: String, s: String): Option[Boolean] =
-	mkMatcher(pat).map(_(s))
-	//mkMatcher(pat).map((f: String => Boolean) => f(s))
-}
-					</code></pre>
+</code></pre>
 
 				</section>
 				<section>
 					<h2>Lifting Two Arguments</h2>
-					<pre>
-						<code>
-def bothMatch1(pat: String, pat2: String, s: String): Option[Boolean] =
-	for {
-		f <- mkMatcher(pat)
-		g <- mkMatcher(pat2)
-	} yield f(s) && g(s)
+<pre><code>
+def bothMatch(pat: String, pat2: String, s: String): Option[Boolean] =
+    // case 1
+    mkMatcher(pat).flatMap(f => mkMatcher(pat2).map(g => f(s) && g(s)))
 
-def bothMatch2(pat: String, pat2: String, s: String): Option[Boolean] =
-	mkMatcher(pat).flatMap (f =>
-		mkMatcher(pat2).map(g => f(s) && g(s)))
-						</code>
-					</pre>
+    // case 2
+    for {
+        f <- mkMatcher(pat)
+        g <- mkMatcher(pat2)
+    } yield f(s) && g(s)
+</code></pre>
 				</section>
 
 				<section>
 					<h2>Generalise</h2>
-					<pre><code>
-def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = ???
+<pre><code>
+def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
 
-def bothMatch3(pat: String, pat2: String, s: String): Option[Boolean] =
-	map2(mkMatcher(pat), mkMatcher(pat2))((f, g) => f(s) && g(s))
-					</code></pre>
+def bothMatch(p1: String, p2: String, s: String): Option[Boolean] =
+    map2(mkMatcher(p1), mkMatcher(p2))((f, g) => f(s) && g(s))
+</code></pre>
 				</section>
 
 				<section>
 					<h2>Exercises</h2>
-					<ul>
-						<li>Write:</li>
-						<pre>
-							<code>
-def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
-def sequence[A](a: List[Option[A]]): Option[List[A]]
-def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
-							</code>
-						</pre>
-					</ul>
+<pre><code>
+    def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C]
+    def sequence[A](a: List[Option[A]]): Option[List[A]]
+    def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]]
+</code></pre>
+
 				</section>
 
 				<section>
-					<h2>Either</h2>
+					<h2>Validation</h2>
 					<ul>
 						<li>Option too simplistic</li>
-						<li>Either gives a reason for failure</li>
+						<li>Validation gives a reason for failure</li>
 						<li>Disjoint union of two types</li>
-						<li>By convention, left is failure, right is "correct/right"</li>
 					</ul>
-					<pre>
-						<code>
-sealed trait Either[+E, +A]
-case class Left[+E](value: E) extends Either[E, Nothing]
-case class Right[+A](value: A) extends Either[Nothing, A]
-						</code>
-					</pre>
+<pre><code>
+sealed trait Validation[+E, +A]
+case class Failure[+E](error: E) extends Validation[E, Nothing]
+case class Success[+A](value: A) extends Validation[Nothing, A]
+</code></pre>
 
 				</section>
 				<section>
-					<h2>Creating Either</h2>
-					<pre>
-						<code>
-def safeDiv(x: Double, y: Double): Either[Exception, Double] =
-	try {
-		Right(x / y)
-	} catch {
-		case e: Exception => Left(e)
-	}
-						</code>
-					</pre>
+					<h2>Creating Validation</h2>
+<pre><code>
+def safeDiv(x: Double, y: Double): Validation[Exception, Double] =
+    try {
+        Success(x / y)
+    } catch {
+        case e: Exception => Failure(e)
+    }
+</code></pre>
 
 				</section>
 
-
-
 				<section>
-					<h2>Using Either Functions</h2>
-					<pre>
-						<code>
-trait Either[+E, +A] {
-	def map[B](f: A => B): Either[E, B]
-	def flatMap[EE >: E, B](f: A => Either[EE, B]): Either[EE, B]
-	def orElse[EE >: E,B >: A](b: => Either[EE, B]): Either[EE, B]
-	def map2[EE >: E, B, C](b: Either[EE, B])(f: (A, B) => C): Either[EE, C]
+					<h2>Validation Functions</h2>
+<pre><code>
+trait Validation[+E, +A] {
+    def map[B](f: A => B): Validation[E, B]
+    def flatMap[B](f: A => Validation[E, B]): Validation[E, B]
+    def orElse[A](b: => Validation[E, A]): Validation[E, A]
+    def map2[B, C](b: Validation[E, B])(f: (A, B) => C): Validation[E, C]
 }
-						</code>
-					</pre>
+</code></pre>
 
-					<pre><code>
+<pre><code>
 for {
-	age <- Right(42)
-	name <- Left("invalid name")
-	salary <- Right(1000000.0)
+    age <- Success(42)
+    name <- Failure("invalid name")
+    salary <- Success(3.4)
 } yield employee(name, age, salary)
-					</code></pre>
+</code></pre>
 				</section>
 
 				<section>
-					<h2>Either Example</h2>
-					<pre><code>
+					<h2>Validation Example</h2>
+<pre><code>
 case class Person(name: Name, age: Age)
-sealed class Name(val value: String)
-sealed class Age(val value: Int)
+case class Name(value: String)
+case class Age(value: Int)
 
 object Person {
-	def mkName(name: String): Either[String, Name] =
-		if (name == "" || name == null) Left("Name is empty.")
-		else Right(new Name(name))
+    def mkName(name: String): Validation[String, Name] =
+        if (name == "" || name == null) Faliure("Name is empty.")
+        else Success(new Name(name))
 
-	def mkAge(age: Int): Either[String, Age] =
-		if (age < 0) Left("Age is out of range.")
-		else Right(new Age(age))
+    def mkAge(age: Int): Validation[String, Age] =
+        if (age < 0) Faliure("Age is out of range.")
+        else Success(new Age(age))
 
-	def mkPerson(name: String, age: Int): Either[String, Person] =
-		mkName(name).map2(mkAge(age))(Person(_, _))
+    def mkPerson(name: String, age: Int): Validation[String, Person] =
+        mkName(name).map2(mkAge(age))((n, a) => Person(n, a))
 }
-					</code></pre>
+</code></pre>
 				</section>
-				<section>
+
+                <section>
+                    <h2>Exercises</h2>
+<pre><code>
+def map[B](f: A => B): Validation[E, B]
+def flatMap[E2 >: E, B](f: A => Validation[E2, B]): Validation[E2, B]
+def orElse[E2 >: E, B >: A](v: => Validation[E2, B]): Validation[E2, B]
+def map2[E2 >: E, B, C](v: Validation[E2, B])(f: (A, B) => C): Validation[E2, C]
+
+def traverse[E,A,B](as: List[A])(f: A => Validation[E, B]): Validation[E, List[B]]
+def sequence[E,A](vs: List[Validation[E,A]]): Validation[E,List[A]] =
+</code></pre>
+
+                </section>
+
+                <section>
 					<h2>Conclusion</h2>
 					<ul>
-						<li>Option and Either are:
+						<li>Option and Validation are:
 							<ul>
 								<li>modular</li>
 								<li>compositional</li>

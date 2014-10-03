@@ -109,7 +109,8 @@ if2(false, sys.error("fail"), 3)
 					</code></pre>
 					<ul>
 						<li>Lazy arguments have => before type</li>
-						<li>Lazy args uncached</li>
+                        <li>Equivalent to "() => A"</li>
+						<li>Lazy args not cached</li>
 					</ul>
 
 					<pre><code>
@@ -135,8 +136,9 @@ def maybeTwice2(b: Boolean, i: => Int) = {
 	if (b) j+j else 0
 }
 
-val x = maybeTwice2(true, { println("hi"); 1+41 })
-					</code></pre>
+scala> val x = maybeTwice2(true, { println("hi"); 1+41 })
+hi
+x: Int = 84</code></pre>
 				</section>
 
 				<section>
@@ -145,44 +147,59 @@ val x = maybeTwice2(true, { println("hi"); 1+41 })
 						<li>Composed functions on streams use single pass</li>
 					</ul>
 					<pre><code>
-sealed abstract class Stream[+A] {
-	def uncons: Option[Cons[A]]
-	def isEmpty: Boolean = uncons.isEmpty
-}
-object Empty extends Stream[Nothing] {
-	val uncons = None
-}
-sealed abstract class Cons[+A] extends Stream[A] {
-	def head: A
-	def tail: Stream[A]
-	val uncons = Some(this)
-}
+sealed trait Stream[+A]
+case object Empty extends Stream[Nothing]
+case class Cons[+A](h: () => A, t: () => Stream[A]) extends Stream[A]
 
-					</code></pre>
-				</section>
-
-				<section>
-					<h2>Stream Companion</h2>
-					<pre><code>
 object Stream {
-	def empty[A]: Stream[A] = Empty
-	def cons[A](h: => A, t: => Stream[A]): Stream[A] = {
-		new Cons[A] {
-			lazy val head = h
-			lazy val tail = t
-		}
-	}
-	def apply[A](as: A*): Stream[A] =
-		if (as.isEmpty)
-			Empty
-		else
-			cons(as.head, apply(as.tail: _*))
+    def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
+        lazy val head = hd
+        lazy val tail = tl
+        Cons(() => head, () => tail)
+    }
+    def empty[A]: Stream[A] = Empty
+
+    def apply[A](as: A*): Stream[A] = {
+        if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
+    }
 }
-					</code></pre>
+</code></pre>
 				</section>
+
+
+                <section>
+                    <h2>Forcing Thunks</h2>
+<pre><code>
+def headOption[A](s: Stream[A]): Option[A] = {
+    s match {
+        case Empty => None
+        case Cons(h, t) => Some(h())
+    }
+}
+</code></pre>
+                </section>
+
+                <section>
+                    <h2>Memoizing Streams</h2>
+                    <ul>
+                        <li>Smart constructor memoizes arguments</li>
+                    </ul>
+<pre><code>
+val x = Cons(() => expensive(x), tl)
+val h1 = x.headOption
+val h2 = x.headOption
+
+def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
+    lazy val head = hd
+    lazy val tail = tl
+    Cons(() => head, () => tail)
+}
+</code></pre>
+                </section>
 
 				<section>
 					<h2>Exercises</h2>
+                    Add functions to the Stream trait
 					<pre><code>
 def toList: List[A]
 def take(n: Int): Stream[A]
@@ -206,10 +223,11 @@ def takeWhile(p: A => Boolean): Stream[A]
 				<section>
 					<h2>Example</h2>
 					<pre><code>
-def exists(p: A => Boolean): Boolean =
-	uncons match {
-		case Some(c) => p(c.head) || c.tail.exists(p)
-		case None => false
+def exists(p: A => Boolean): Boolean = {
+    this match {
+        case Cons(h, t) => p(h()) || t().exists(p)
+        case _ => false
+    }
 }
 					</code></pre>
 					<ul>
@@ -223,12 +241,13 @@ def exists(p: A => Boolean): Boolean =
 					<h2>Lazy Fold</h2>
 					<pre><code>
 def exists(p: A => Boolean): Boolean =
-	foldRight(false)((a, b) => p(a) || b)
+    foldRight(false)((a, b) => p(a) || b)
 
-def foldRight[B](acc: => B)(f: (A, => B) => B): B =
-	uncons match {
-		case Some(c) => f(c.head, c.tail.foldRight(acc)(f))
-		case None => acc
+def foldRight[B](acc: => B)(f: (A, => B) => B): B = {
+    this match {
+        case Cons(h, t) => f(h(), t().foldRight(acc)(f))
+        case _ => acc
+    }
 }
 					</code></pre>
 					<ul>
@@ -251,19 +270,23 @@ def foldRight[B](acc: => B)(f: (A, => B) => B): B =
 
 				<section>
 					<h2>Example</h2>
-					<pre><code>
-Stream(1,2,3,4).map(_ + 6).filter(_ % 2 == 0).toList
+<pre><code>
+Stream(1, 2, 3, 4).map(_ + 10).filter(_ % 2 == 0).toList
 
-cons(1, Stream(2,3,4).map(_ + 4)).filter(_ % 2 == 0).toList
-Stream(2,3,4).map(_ + 4).filter(_ % 2 == 0).toList
-cons(6, Stream(3,4).map(_ + 4)).filter(_ % 2 == 0).toList
-6 :: Stream(3,4).map(_ + 4).filter(_ % 2 == 0).toList
-6 :: cons(cons(7, Stream(4)).map(_ + 4)).filter(_ % 2 == 0).toList
-6 :: Stream(4).map(_ + 4).filter(_ % 2 == 0).toList
-6 :: cons(8, Stream().map(_ + 4)).filter(_ % 2 == 0).toList
-6 :: 8 :: Stream().map(_ + 4).filter(_ % 2 == 0).toList
-6 :: 8 :: List()
-					</code></pre>
+// map first element
+cons(11, Stream(2, 3, 4).map(_ + 10)).filter(_ % 2 == 0).toList
+// filter first element
+Stream(2, 3, 4).map(_ + 10).filter(_ % 2 == 0).toList
+// map second element
+cons(12, Stream(3, 4).map(_ + 10)).filter(_ % 2 == 0).toList
+// filter second element, get first result
+12 :: Stream(3, 4).map(_ + 10).filter(_ % 2 == 0).toList
+12 :: cons(13, Stream(4).map(_ + 10)).filter(_ % 2 == 0).toList
+12 :: Stream(4).map(_ + 10).filter(_ % 2 == 0).toList
+12 :: cons(14, Stream().map(_ + 10)).filter(_ % 2 == 0).toList
+12 :: 14 :: Stream().map(_ + 10).filter(_ % 2 == 0).toList
+12 :: 14 :: List()
+</code></pre>
 					<ul>
 						<li>Process element at a time</li>
 						<li>Filter and map interleaved</li>
@@ -299,6 +322,20 @@ def unfold[A, S](s: S)(f: S => Option[(A, S)]): Stream[A]
 						<li>Can always evaluate more in finite time</li>
 					</ul>
 				</section>
+
+                <section>
+                    <h2>Exercises</h2>
+                    <ul>
+                        <li>Write fibs, from and constant using unfold</li>
+                        <li>Write map, take, takeWhile and zip using unfold</li>
+                    </ul>
+<pre><code>
+def startsWith[A](s1: Stream[A], s2: Stream[A]): Boolean
+def tails[A](s: Stream[A]): Stream[Stream[A]]
+def hasSubsequence[A](s1: Stream[A], s2: Stream[A]): Boolean
+def scanRight[A](s: Stream[A], acc: B)(f: (A, B) => B): List[B]
+</code></pre>
+                </section>
 
 				<section>
 					<h2>Summary</h2>
